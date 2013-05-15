@@ -129,7 +129,7 @@ int misc_init_r(void)
  */
 void set_muxconf_regs(void)
 {
-	MUX_AM3517EVM();
+	MUX_RHINO();
 }
 
 #if defined(CONFIG_GENERIC_MMC) && !defined(CONFIG_SPL_BUILD)
