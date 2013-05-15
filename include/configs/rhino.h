@@ -30,7 +30,7 @@
  */
 #define CONFIG_OMAP		1	/* in a TI OMAP core */
 #define CONFIG_OMAP34XX		1	/* which is a 34XX */
-#define CONFIG_OMAP3_AM3517EVM	1	/* working with AM3517EVM */
+#define CONFIG_OMAP3_RHINO	1	/* working with AM3517EVM */
 
 #define CONFIG_EMIF4	/* The chip has EMIF4 controller */
 
@@ -81,9 +81,9 @@
 /*
  * select serial console configuration
  */
-#define CONFIG_CONS_INDEX		3
-#define CONFIG_SYS_NS16550_COM3		OMAP34XX_UART3
-#define CONFIG_SERIAL3			3	/* UART3 on AM3517 EVM */
+#define CONFIG_CONS_INDEX		1
+#define CONFIG_SYS_NS16550_COM1		OMAP34XX_UART1
+#define CONFIG_SERIAL1			1	/* UART1 on RHINO Board */
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -100,9 +100,9 @@
  * Enable CONFIG_MUSB_HOST for Host functionalities MSC, keyboard
  * Enable CONFIG_MUSB_GADGET for Device functionalities.
  */
-#define CONFIG_USB_MUSB_AM35X
-#define CONFIG_MUSB_HOST
-#define CONFIG_MUSB_PIO_ONLY
+#undef CONFIG_USB_MUSB_AM35X
+#undef CONFIG_MUSB_HOST
+#undef CONFIG_MUSB_PIO_ONLY
 
 #ifdef CONFIG_USB_MUSB_AM35X
 
@@ -131,6 +131,7 @@
 /* commands to include */
 #include <config_cmd_default.h>
 
+#define CONFIG_CMD_CACHE
 #define CONFIG_CMD_EXT2		/* EXT2 Support			*/
 #define CONFIG_CMD_FAT		/* FAT support			*/
 #define CONFIG_CMD_JFFS2	/* JFFS2 Support		*/
@@ -139,7 +140,7 @@
 #define CONFIG_CMD_MMC		/* MMC support			*/
 #define CONFIG_CMD_NAND		/* NAND support			*/
 #define CONFIG_CMD_DHCP
-#undef CONFIG_CMD_PING
+#define CONFIG_CMD_PING
 
 #undef CONFIG_CMD_FLASH		/* flinfo, erase, protect	*/
 #undef CONFIG_CMD_FPGA		/* FPGA configuration Support	*/
@@ -152,7 +153,7 @@
 #define CONFIG_SYS_I2C_SLAVE		1
 #define CONFIG_DRIVER_OMAP34XX_I2C	1
 
-#undef CONFIG_CMD_NET
+#define CONFIG_CMD_NET
 #undef CONFIG_CMD_NFS
 /*
  * Board NAND Info.
@@ -173,23 +174,27 @@
 #define CONFIG_JFFS2_PART_SIZE		0xf980000	/* sz of jffs2 part */
 
 /* Environment information */
-#define CONFIG_BOOTDELAY	10
+#define CONFIG_BOOTDELAY	3
 
 #define CONFIG_BOOTFILE		"uImage"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	"autoload=no\0" \
 	"loadaddr=0x82000000\0" \
-	"console=ttyO2,115200n8\0" \
+	"console=ttyO0,115200n8\0" \
 	"mmcdev=0\0" \
 	"mmcargs=setenv bootargs console=${console} " \
 		"root=/dev/mmcblk0p2 rw rootwait\0" \
 	"nandargs=setenv bootargs console=${console} " \
 		"root=/dev/mtdblock4 rw " \
 		"rootfstype=jffs2\0" \
+	"nfsargs=setenv bootargs console=${console} " \
+		"root=/dev/nfs rw " \
+		"ip=dhcp " \
+		"nfsroot=${serverip}:/srv/rhinoNFS,nolock\0" \
 	"loadbootscript=fatload mmc ${mmcdev} ${loadaddr} boot.scr\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source ${loadaddr}\0" \
-	"loaduimage=fatload mmc ${mmcdev} ${loadaddr} uImage\0" \
 	"mmcboot=echo Booting from mmc ...; " \
 		"run mmcargs; " \
 		"bootm ${loadaddr}\0" \
@@ -197,9 +202,23 @@
 		"run nandargs; " \
 		"nand read ${loadaddr} 280000 400000; " \
 		"bootm ${loadaddr}\0" \
+	"nfsboot=echo Booting from nfs ...; " \
+		"run nfsargs; " \
+		"tftpboot; " \
+		"bootm ${loadaddr}\0" \
+	"loadmlo=tftp ${loadaddr} MLO\0" \
+	"loaduboot=tftp ${loadaddr} u-boot.img\0" \
+	"loaduimage=tftp ${loadaddr} uImage\0" \
+        "updatemlo=nandecc hw;nand erase 0x0 0x50000;"                      \
+                "nand write ${loadaddr} 0x0 0x50000\0"                      \
+	"updateuboot=nandecc hw;nand erase 0x80000 0x1C0000;"		\
+		"nand write ${loadaddr} 0x80000 0x1C0000\0"		\
+	"updateuimage=nandecc hw;nand erase 0x280000 0x500000;"			\
+		"nand write ${loadaddr} 0x280000 0x500000\0"			\
+
 
 #define CONFIG_BOOTCOMMAND \
-	"mmc dev ${mmcdev}; if mmc rescan; then " \
+	"dhcp; mmc dev ${mmcdev}; if mmc rescan; then " \
 		"if run loadbootscript; then " \
 			"run bootscript; " \
 		"else " \
@@ -208,13 +227,18 @@
 			"else run nandboot; " \
 			"fi; " \
 		"fi; " \
-	"else run nandboot; fi"
+	"else " \
+		"if ping ${serverip}; then " \
+			"run nfsboot; " \
+		"else run nandboot; " \
+		"fi; " \
+	"fi"
 
 #define CONFIG_AUTO_COMPLETE	1
 /*
  * Miscellaneous configurable options
  */
-#define V_PROMPT			"AM3517_EVM # "
+#define V_PROMPT			"RHINO # "
 
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
@@ -296,6 +320,24 @@
 /* use flash_info[2] */
 #define CONFIG_SYS_JFFS2_FIRST_BANK	CONFIG_SYS_MAX_FLASH_BANKS
 #define CONFIG_SYS_JFFS2_NUM_BANKS	1
+
+/*-----------------------------------------------------
+ * ethernet support for AM3517 EVM
+ *------------------------------------------------
+ */
+#if defined(CONFIG_CMD_NET)
+#define CONFIG_SYS_DCACHE_OFF		/* Driver not D-CACHE safe */
+#define CONFIG_DRIVER_TI_EMAC
+#define CONFIG_DRIVER_TI_EMAC_USE_RMII
+#define CONFIG_MII
+#define CONFIG_EMAC_MDIO_PHY_NUM	0
+#define CONFIG_BOOTP_DEFAULT
+#define CONFIG_BOOTP_DNS
+#define CONFIG_BOOTP_DNS2
+#define CONFIG_BOOTP_SEND_HOSTNAME
+#define CONFIG_NET_RETRY_COUNT		10
+#define CONFIG_NET_MULTI
+#endif
 
 #define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
 #define CONFIG_SYS_INIT_RAM_ADDR	0x4020f800
