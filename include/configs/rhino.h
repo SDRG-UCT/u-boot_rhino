@@ -206,15 +206,16 @@
 		"run nfsargs; " \
 		"tftpboot; " \
 		"bootm ${loadaddr}\0" \
+	"clearmem=mw.b ${loadaddr} 0xff 0x2000000\0" \
 	"loadmlo=tftp ${loadaddr} MLO\0" \
 	"loaduboot=tftp ${loadaddr} u-boot.img\0" \
 	"loaduimage=tftp ${loadaddr} uImage\0" \
-        "updatemlo=nandecc hw;nand erase 0x0 0x50000;"                      \
-                "nand write ${loadaddr} 0x0 0x50000\0"                      \
-	"updateuboot=nandecc hw;nand erase 0x80000 0x1C0000;"		\
-		"nand write ${loadaddr} 0x80000 0x1C0000\0"		\
-	"updateuimage=nandecc hw;nand erase 0x280000 0x500000;"			\
-		"nand write ${loadaddr} 0x280000 0x500000\0"			\
+        "updatemlo=nandecc hw;nand erase 0x0 0x50000;" \
+                "nand write ${loadaddr} 0x0 0x50000\0" \
+	"updateuboot=nandecc hw;nand erase 0x80000 0x1C0000;" \
+		"nand write ${loadaddr} 0x80000 0x1C0000\0" \
+	"updateuimage=nandecc hw;nand erase 0x280000 0x500000;" \
+		"nand write ${loadaddr} 0x280000 0x500000\0" \
 
 
 #define CONFIG_BOOTCOMMAND \
