@@ -43,6 +43,16 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+/* Timing definitions for FPGA */
+static const u32 gpmc_fpga_cfg[] = {
+        GPMC_FPGA_CONFIG1,
+        GPMC_FPGA_CONFIG2,
+        GPMC_FPGA_CONFIG3,
+        GPMC_FPGA_CONFIG4,
+        GPMC_FPGA_CONFIG5,
+        GPMC_FPGA_CONFIG6,
+};
+
 /*
  * Routine: board_init
  * Description: Early hardware init.
@@ -50,6 +60,15 @@ DECLARE_GLOBAL_DATA_PTR;
 int board_init(void)
 {
 	gpmc_init(); /* in SRAM or SDRAM, finish GPMC */
+
+	/* Configure GPMC for FPGA memory accesses */
+        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[1], FPGA_CS1_BASE, GPMC_SIZE_128M);
+        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[2], FPGA_CS2_BASE, GPMC_SIZE_128M);
+        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[3], FPGA_CS3_BASE, GPMC_SIZE_128M);
+        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[4], FPGA_CS4_BASE, GPMC_SIZE_128M);
+        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[5], FPGA_CS5_BASE, GPMC_SIZE_128M);
+        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[6], FPGA_CS6_BASE, GPMC_SIZE_128M);
+
 	/* board id for Linux */
 	gd->bd->bi_arch_number = MACH_TYPE_RHINO;
 	/* boot param addr */
