@@ -30,7 +30,7 @@
  */
 #define CONFIG_OMAP		1	/* in a TI OMAP core */
 #define CONFIG_OMAP34XX		1	/* which is a 34XX */
-#define CONFIG_OMAP3_RHINO	1	/* working with AM3517EVM */
+#define CONFIG_RHINO		1	/* working with UCT RHINO */
 
 #define CONFIG_EMIF4	/* The chip has EMIF4 controller */
 
@@ -130,6 +130,15 @@
 
 #endif /* CONFIG_USB_MUSB_AM35X */
 
+#define CONFIG_FPGA
+#define CONFIG_FPGA_XILINX
+#define CONFIG_FPGA_SPARTAN3
+#define CONFIG_SYS_FPGA_PROG_FEEDBACK
+#define CONFIG_SYS_FPGA_WAIT    10000
+#define CONFIG_MAX_FPGA_DEVICES 1
+#define CONFIG_FPGA_DELAY() udelay(1)
+#define CONFIG_SYS_FPGA_PROG_FEEDBACK
+
 /* commands to include */
 #include <config_cmd_default.h>
 
@@ -144,7 +153,7 @@
 #define CONFIG_CMD_PING
 
 #undef CONFIG_CMD_FLASH		/* flinfo, erase, protect	*/
-#undef CONFIG_CMD_FPGA		/* FPGA configuration Support	*/
+#define CONFIG_CMD_FPGA		/* FPGA configuration Support	*/
 #undef CONFIG_CMD_IMI		/* iminfo			*/
 #undef CONFIG_CMD_IMLS		/* List all found images	*/
 

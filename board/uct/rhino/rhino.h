@@ -49,6 +49,17 @@ const omap3_sysinfo sysinfo = {
 #define FPGA_CS5_BASE           0x28000000
 #define FPGA_CS6_BASE           0x38000000
 
+#define FPGA_CCLK	122
+#define FPGA_DIN	123
+#define FPGA_PROG	126
+#define FPGA_INIT_B	127
+#define FPGA_DONE       128
+#define FPGA_INIT_B_DIR	129
+
+#define FPGA_VCCINT_EN		99
+#define FPGA_VCCO_AUX_EN	100
+#define FPGA_VCCMGT_EN		101
+
 #endif
 
 /*
