@@ -68,6 +68,8 @@
  * Hardware drivers
  */
 
+#define CONFIG_OMAP_GPIO
+
 /*
  * NS16550 Configuration
  */
@@ -131,7 +133,6 @@
 /* commands to include */
 #include <config_cmd_default.h>
 
-#define CONFIG_CMD_CACHE
 #define CONFIG_CMD_EXT2		/* EXT2 Support			*/
 #define CONFIG_CMD_FAT		/* FAT support			*/
 #define CONFIG_CMD_JFFS2	/* JFFS2 Support		*/
@@ -147,14 +148,18 @@
 #undef CONFIG_CMD_IMI		/* iminfo			*/
 #undef CONFIG_CMD_IMLS		/* List all found images	*/
 
+#define CONFIG_CMD_NET
+#undef CONFIG_CMD_NFS
+
+/* Extra Commands Added */
+#define CONFIG_CMD_GPIO
+
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_HARD_I2C			1
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_SYS_I2C_SLAVE		1
 #define CONFIG_DRIVER_OMAP34XX_I2C	1
 
-#define CONFIG_CMD_NET
-#undef CONFIG_CMD_NFS
 /*
  * Board NAND Info.
  */

@@ -32,6 +32,7 @@ const omap3_sysinfo sysinfo = {
 	"NAND",
 };
 
+#ifdef CONFIG_FPGA
 
 /* FPGA CS1 to CS6 configuration */
 #define GPMC_FPGA_CONFIG1       0x2C001201
@@ -47,6 +48,8 @@ const omap3_sysinfo sysinfo = {
 #define FPGA_CS4_BASE           0x20000000
 #define FPGA_CS5_BASE           0x28000000
 #define FPGA_CS6_BASE           0x38000000
+
+#endif
 
 /*
  * IEN  - Input Enable
