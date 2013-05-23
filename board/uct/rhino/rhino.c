@@ -24,9 +24,11 @@
  */
 
 #include <common.h>
+#include <asm/gpio.h>
 #include <asm/io.h>
 #include <asm/omap_musb.h>
 #include <asm/arch/am35x_def.h>
+#include <asm/arch/gpio.h>
 #include <asm/arch/mem.h>
 #include <asm/arch/mux.h>
 #include <asm/arch/sys_proto.h>
@@ -37,6 +39,8 @@
 #include <linux/usb/ch9.h>
 #include <linux/usb/gadget.h>
 #include <linux/usb/musb.h>
+#include <spartan3.h>
+#include <spi.h>
 #include <i2c.h>
 #include <netdev.h>
 #include "rhino.h"
@@ -44,6 +48,14 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef CONFIG_FPGA
+
+/* Define FPGA_DEBUG to get debug printf's */
+#ifdef  FPGA_DEBUG
+#define PRINTF(fmt,args...)     printf (fmt ,##args)
+#else
+#define PRINTF(fmt,args...)
+#endif
+
 /* Timing definitions for FPGA */
 static const u32 gpmc_fpga_cfg[] = {
         GPMC_FPGA_CONFIG1,
@@ -54,6 +66,132 @@ static const u32 gpmc_fpga_cfg[] = {
         GPMC_FPGA_CONFIG6,
 };
 
+//Declare Spi Variable.
+struct spi_slave *spi;
+
+int fpga_pre_fn(int cookie)
+{
+        PRINTF("%s:%d: FPGA pre-configuration\n", __func__, __LINE__);
+
+	gpio_request(FPGA_VCCINT_EN, "FPGA_VCCINT_EN");
+	gpio_direction_output(FPGA_VCCINT_EN, 1);
+	gpio_request(FPGA_VCCO_AUX_EN, "FPGA_VCCO_AUX_EN");
+	gpio_direction_output(FPGA_VCCO_AUX_EN, 1);
+	gpio_request(FPGA_VCCMGT_EN, "FPGA_VCCMGT_EN");
+	gpio_direction_output(FPGA_VCCMGT_EN, 1);
+
+//	gpio_request(FPGA_CCLK, "FPGA_CCLK");
+//	gpio_direction_output(FPGA_CCLK, 0);
+//	gpio_request(FPGA_DIN, "FPGA_DIN");
+//	gpio_direction_output(FPGA_DIN, 0);
+	gpio_request(FPGA_PROG, "FPGA_PROG");
+	gpio_direction_output(FPGA_PROG, 1);
+	gpio_request(FPGA_INIT_B, "FPGA_INIT_B");
+	gpio_direction_input(FPGA_INIT_B);
+	gpio_request(FPGA_DONE, "FPGA_DONE");
+        gpio_direction_input(FPGA_DONE);
+        gpio_request(FPGA_INIT_B_DIR, "FPGA_INIT_B_DIR");
+        gpio_direction_output(FPGA_INIT_B_DIR, 0);
+
+	//Setup SPI
+	PRINTF("Starting SPI Setup\n");
+	spi = spi_setup_slave(1,		//bus
+			      0,		//CS
+			      48000000,		//Max Hz
+			      0			//Mode
+			      );
+	PRINTF("SPI Setup Compelte\n");
+	PRINTF("Claiming SPI Bus\n");
+	spi_claim_bus(spi);
+	PRINTF("Bus Claimed!\n");
+        spi_xfer(spi, 0, NULL, NULL,SPI_XFER_BEGIN);//send spi transfer begin flags
+	
+	return 0;
+}
+
+int fpga_pgm_fn(int nassert, int nflush, int cookie)
+{
+        PRINTF("%s:%d: FPGA PROGRAM cookie=%d nassert=%d\n", __func__, __LINE__, cookie, nassert);
+
+	gpio_set_value(FPGA_PROG, !nassert);
+
+        return nassert;
+}
+
+
+int fpga_clk_fn(int assert_clk, int flush, int cookie)
+{
+	gpio_set_value(FPGA_CCLK, assert_clk);
+
+        return assert_clk;
+}
+
+int fpga_init_fn(int cookie)
+{
+	PRINTF("%s:%d: FPGA INIT CHECK cookie=%d FPGA_INIT_B=%d\n", __func__, __LINE__, cookie, gpio_get_value(FPGA_INIT_B));
+
+	return !gpio_get_value(FPGA_INIT_B);
+}
+
+int fpga_done_fn(int cookie)
+{
+	PRINTF("%s:%d: FPGA DONE CHECK cookie=%d FPGA_DONE_B=%d\n", __func__, __LINE__, cookie, gpio_get_value(FPGA_DONE));
+
+        return gpio_get_value(FPGA_DONE);
+}
+
+int fpga_wr_fn(int nassert_write, int flush, int cookie)
+{
+	gpio_set_value(FPGA_DIN, nassert_write);
+
+        return nassert_write;
+}
+
+int fpga_post_fn(int cookie)
+{
+        PRINTF("%s:%d: FPGA post-configuration\n", __func__, __LINE__);
+
+        return 0;
+}
+
+int fpga_bwr_fn(const void *buf, size_t bsize, int flush, int cookie)
+{
+	PRINTF("%s:%d: FPGA BLOCK WRITE cookie=%d\n", __func__, __LINE__, cookie);
+
+	size_t bytecount = 0;
+	unsigned char *data = (unsigned char *) buf;
+	unsigned char val[2];
+
+	while (bytecount < bsize)
+	 {
+		val[0] = data [bytecount ++];
+		val[1] = data [bytecount ++];
+		//Write to SPI	
+		spi_xfer(spi, 16, val, NULL, 0);
+
+#ifdef CONFIG_SYS_FPGA_PROG_FEEDBACK
+		if (bytecount % (bsize / 40) == 0)
+                putc ('.');             /* let them know we are alive */
+#endif
+
+    	}
+
+	return 1;
+}
+
+Xilinx_Spartan3_Slave_Serial_fns rhino_fpga_fns = {
+        fpga_pre_fn,
+        fpga_pgm_fn,
+        fpga_clk_fn,
+        fpga_init_fn,
+        fpga_done_fn,
+        fpga_wr_fn,
+        fpga_post_fn,
+	fpga_bwr_fn,
+};
+
+Xilinx_desc fpga = XILINX_XC6SLX4_DESC(slave_serial,
+                        (void *)&rhino_fpga_fns, 0);
 #endif
 
 /*
@@ -72,6 +210,9 @@ int board_init(void)
         enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[4], FPGA_CS4_BASE, GPMC_SIZE_128M);
         enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[5], FPGA_CS5_BASE, GPMC_SIZE_128M);
         enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[6], FPGA_CS6_BASE, GPMC_SIZE_128M);
+
+        fpga_init();
+        fpga_add(fpga_xilinx, &fpga);
 #endif
 
 	/* board id for Linux */

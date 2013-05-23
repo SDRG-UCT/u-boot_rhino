@@ -70,6 +70,9 @@
 
 #define CONFIG_OMAP_GPIO
 
+#define CONFIG_SPI
+#define CONFIG_OMAP3_SPI
+
 /*
  * NS16550 Configuration
  */
@@ -130,11 +133,12 @@
 
 #endif /* CONFIG_USB_MUSB_AM35X */
 
-#define CONFIG_FPGA
+#define CONFIG_FPGA	1
+#define FPGA_DEBUG
 #define CONFIG_FPGA_XILINX
 #define CONFIG_FPGA_SPARTAN3
 #define CONFIG_SYS_FPGA_PROG_FEEDBACK
-#define CONFIG_SYS_FPGA_WAIT    10000
+#define CONFIG_SYS_FPGA_WAIT    100
 #define CONFIG_MAX_FPGA_DEVICES 1
 #define CONFIG_FPGA_DELAY() udelay(1)
 #define CONFIG_SYS_FPGA_PROG_FEEDBACK
@@ -162,6 +166,7 @@
 
 /* Extra Commands Added */
 #define CONFIG_CMD_GPIO
+#define CONFIG_CMD_SPI
 
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_HARD_I2C			1
