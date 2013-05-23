@@ -36,11 +36,11 @@ const omap3_sysinfo sysinfo = {
 
 /* FPGA CS1 to CS6 configuration */
 #define GPMC_FPGA_CONFIG1       0x2C001201
-#define GPMC_FPGA_CONFIG2       0x2C001201
-#define GPMC_FPGA_CONFIG3       0x2C001201
-#define GPMC_FPGA_CONFIG4       0x2C001201
-#define GPMC_FPGA_CONFIG5       0x2C001201
-#define GPMC_FPGA_CONFIG6       0x2C001201
+#define GPMC_FPGA_CONFIG2       0x00050500
+#define GPMC_FPGA_CONFIG3       0x00030301
+#define GPMC_FPGA_CONFIG4       0x05030503
+#define GPMC_FPGA_CONFIG5       0x00050608
+#define GPMC_FPGA_CONFIG6       0x04030000
 
 #define FPGA_CS1_BASE           0x08000000
 #define FPGA_CS2_BASE           0x10000000
@@ -152,11 +152,11 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(GPMC_NCS0),		(IDIS | PTU | EN  | M0)) \
 	MUX_VAL(CP(GPMC_NCS1),		(IDIS | PTU | EN  | M0)) \
 	MUX_VAL(CP(GPMC_NCS2),		(IDIS | PTU | EN  | M0)) \
-	MUX_VAL(CP(GPMC_NCS3),		(IEN  | PTU | EN  | M1)) /* sys_ndmareq0 */\
-	MUX_VAL(CP(GPMC_NCS4),		(IEN  | PTU | EN  | M1)) /* sys_ndmareq0 */\
-	MUX_VAL(CP(GPMC_NCS5),		(IEN  | PTU | EN  | M1)) /* sys_ndmareq0 */\
-	MUX_VAL(CP(GPMC_NCS6),		(IEN  | PTU | EN  | M1)) /* sys_ndmareq0 */\
-	MUX_VAL(CP(GPMC_NCS7),		(IDIS | PTU | EN  | M0)) /* gpmc_ncs7 */\
+	MUX_VAL(CP(GPMC_NCS3),		(IEN  | PTU | EN  | M0)) \
+	MUX_VAL(CP(GPMC_NCS4),		(IEN  | PTU | EN  | M0)) \
+	MUX_VAL(CP(GPMC_NCS5),		(IEN  | PTU | EN  | M0)) \
+	MUX_VAL(CP(GPMC_NCS6),		(IEN  | PTU | EN  | M0)) \
+	MUX_VAL(CP(GPMC_NCS7),		(IDIS | PTU | EN  | M0)) \
 	MUX_VAL(CP(GPMC_CLK),		(IEN  | PTD | EN  | M0)) \
 	MUX_VAL(CP(GPMC_NADV_ALE),	(IDIS | PTD | DIS | M0)) \
 	MUX_VAL(CP(GPMC_NOE),		(IDIS | PTD | DIS | M0)) \
