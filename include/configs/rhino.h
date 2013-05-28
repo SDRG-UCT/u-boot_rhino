@@ -223,7 +223,7 @@
 		"bootm ${loadaddr}\0" \
 	"nfsboot=echo Booting from nfs ...; " \
 		"run nfsargs; " \
-		"tftpboot; " \
+		"tftpboot uImage; " \
 		"bootm ${loadaddr}\0" \
 	"clearmem=mw.b ${loadaddr} 0xff 0x2000000\0" \
 	"loadmlo=tftp ${loadaddr} MLO\0" \
