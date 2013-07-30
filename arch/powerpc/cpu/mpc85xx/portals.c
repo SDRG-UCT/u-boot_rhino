@@ -1,23 +1,7 @@
 /*
  * Copyright 2008-2011 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -128,24 +112,32 @@ static int fdt_qportal(void *blob, int off, int id, char *name,
 
 	childoff = fdt_subnode_offset(blob, off, name);
 	if (create) {
+		char handle[64], *p;
+
+		strncpy(handle, name, sizeof(handle));
+		p = strchr(handle, '@');
+		if (!strncmp(name, "fman", 4)) {
+			*p = *(p + 1);
+			p++;
+		}
+		*p = '\0';
+
+		dev_off = fdt_path_offset(blob, handle);
+		/* skip this node if alias is not found */
+		if (dev_off == -FDT_ERR_BADPATH)
+			return 0;
+		if (dev_off < 0)
+			return dev_off;
+
 		if (childoff <= 0)
 			childoff = fdt_add_subnode(blob, off, name);
 
+		/* need to update the dev_off after adding a subnode */
+		dev_off = fdt_path_offset(blob, handle);
+		if (dev_off < 0)
+			return dev_off;
+
 		if (childoff > 0) {
-			char handle[64], *p;
-
-			strncpy(handle, name, sizeof(handle));
-			p = strchr(handle, '@');
-			if (!strncmp(name, "fman", 4)) {
-				*p = *(p + 1);
-				p++;
-			}
-			*p = '\0';
-
-			dev_off = fdt_path_offset(blob, handle);
-			if (dev_off < 0)
-				return dev_off;
-
 			dev_handle = fdt_get_phandle(blob, dev_off);
 			if (dev_handle <= 0) {
 				dev_handle = fdt_alloc_phandle(blob);

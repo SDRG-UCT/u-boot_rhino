@@ -5,24 +5,7 @@
  * Part of this source has been derived from the Linux USB
  * project.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <common.h>
 #include <malloc.h>
@@ -461,8 +444,13 @@ static int usb_kbd_probe(struct usb_device *dev, unsigned int ifnum)
 	usb_set_idle(dev, iface->desc.bInterfaceNumber, REPEAT_RATE, 0);
 
 	debug("USB KBD: enable interrupt pipe...\n");
-	usb_submit_int_msg(dev, pipe, data->new, maxp > 8 ? 8 : maxp,
-				ep->bInterval);
+	if (usb_submit_int_msg(dev, pipe, data->new, maxp > 8 ? 8 : maxp,
+			       ep->bInterval) < 0) {
+		printf("Failed to get keyboard state from device %04x:%04x\n",
+		       dev->descriptor.idVendor, dev->descriptor.idProduct);
+		/* Abort, we don't want to use that non-functional keyboard. */
+		return 0;
+	}
 
 	/* Success. */
 	return 1;
@@ -496,6 +484,7 @@ int drv_usb_kbd_init(void)
 		if (old_dev) {
 			/* Already registered, just return ok. */
 			debug("USB KBD: is already registered.\n");
+			usb_kbd_deregister();
 			return 1;
 		}
 

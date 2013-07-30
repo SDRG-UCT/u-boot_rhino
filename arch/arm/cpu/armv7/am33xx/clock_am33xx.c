@@ -5,15 +5,7 @@
  *
  * Copyright (C) 2013, Texas Instruments, Incorporated - http://www.ti.com/
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE.  See the
- * GNU General Public License for more details.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -246,7 +238,7 @@ static void enable_per_clocks(void)
 		;
 }
 
-static void mpu_pll_config(void)
+void mpu_pll_config_val(int mpull_m)
 {
 	u32 clkmode, clksel, div_m2;
 
@@ -260,7 +252,7 @@ static void mpu_pll_config(void)
 		;
 
 	clksel = clksel & (~CLK_SEL_MASK);
-	clksel = clksel | ((MPUPLL_M << CLK_SEL_SHIFT) | MPUPLL_N);
+	clksel = clksel | ((mpull_m << CLK_SEL_SHIFT) | MPUPLL_N);
 	writel(clksel, &cmwkup->clkseldpllmpu);
 
 	div_m2 = div_m2 & ~CLK_DIV_MASK;
@@ -272,6 +264,11 @@ static void mpu_pll_config(void)
 
 	while (readl(&cmwkup->idlestdpllmpu) != ST_DPLL_CLK)
 		;
+}
+
+static void mpu_pll_config(void)
+{
+	mpu_pll_config_val(CONFIG_SYS_MPUCLK);
 }
 
 static void core_pll_config(void)

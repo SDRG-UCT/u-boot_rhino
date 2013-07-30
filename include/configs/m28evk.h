@@ -2,20 +2,7 @@
  * Copyright (C) 2011 Marek Vasut <marek.vasut@gmail.com>
  * on behalf of DENX Software Engineering GmbH
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+ 
  */
 #ifndef __M28EVK_CONFIG_H__
 #define __M28EVK_CONFIG_H__
@@ -70,6 +57,7 @@
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_MMC
 #define CONFIG_CMD_NAND
+#define CONFIG_CMD_NAND_TRIMFFS
 #define CONFIG_CMD_NET
 #define CONFIG_CMD_NFS
 #define CONFIG_CMD_PING
@@ -77,6 +65,7 @@
 #define CONFIG_CMD_SF
 #define CONFIG_CMD_SPI
 #define CONFIG_CMD_USB
+#define	CONFIG_VIDEO
 
 #define CONFIG_REGEX			/* Enable regular expression support */
 
@@ -268,6 +257,24 @@
 #define CONFIG_ENV_SPI_MAX_HZ		40000000
 #define CONFIG_ENV_SPI_MODE		SPI_MODE_0
 #endif
+#endif
+
+/*
+ * LCD
+ */
+#ifdef	CONFIG_VIDEO
+#define	CONFIG_CFB_CONSOLE
+#define	CONFIG_VIDEO_MXS
+#define	CONFIG_VIDEO_LOGO
+#define	CONFIG_VIDEO_SW_CURSOR
+#define	CONFIG_VGA_AS_SINGLE_DEVICE
+#define	CONFIG_SYS_CONSOLE_IS_IN_ENV
+#define	CONFIG_SPLASH_SCREEN
+#define	CONFIG_CMD_BMP
+#define	CONFIG_BMP_16BPP
+#define	CONFIG_VIDEO_BMP_RLE8
+#define	CONFIG_VIDEO_BMP_GZIP
+#define	CONFIG_SYS_VIDEO_LOGO_MAX_SIZE	(512 << 10)
 #endif
 
 /*

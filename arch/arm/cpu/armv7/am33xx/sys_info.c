@@ -9,15 +9,7 @@
  *      Richard Woodruff <r-woodruff2@ti.com>
  *      Syed Mohammed Khasim <khasim@ti.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR /PURPOSE.  See the
- * GNU General Public License for more details.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -92,7 +84,6 @@ u32 get_sysboot_value(void)
 int print_cpuinfo(void)
 {
 	char *cpu_s, *sec_s;
-	int arm_freq, ddr_freq;
 
 	switch (get_cpu_type()) {
 	case AM335X:
@@ -123,10 +114,7 @@ int print_cpuinfo(void)
 		sec_s = "?";
 	}
 
-	printf("%s-%s rev %d\n",
-			cpu_s, sec_s, get_cpu_rev());
-
-	/* TODO: Print ARM and DDR frequencies  */
+	printf("%s-%s rev %d\n", cpu_s, sec_s, get_cpu_rev());
 
 	return 0;
 }

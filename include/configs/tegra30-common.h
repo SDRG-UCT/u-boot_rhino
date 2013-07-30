@@ -2,23 +2,7 @@
  *  (C) Copyright 2010-2012
  *  NVIDIA Corporation <www.nvidia.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _TEGRA30_COMMON_H_
@@ -87,9 +71,10 @@
 #define CONFIG_SYS_SPL_MALLOC_START	0x80090000
 #define CONFIG_SPL_STACK		0x800ffffc
 
-#define CONFIG_SPL_LDSCRIPT		"$(CPUDIR)/tegra30/u-boot-spl.lds"
-
 /* Total I2C ports on Tegra30 */
 #define TEGRA_I2C_NUM_CONTROLLERS	5
+
+/* For USB EHCI controller */
+#define CONFIG_EHCI_IS_TDI
 
 #endif /* _TEGRA30_COMMON_H_ */

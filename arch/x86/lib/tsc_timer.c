@@ -1,20 +1,7 @@
 /*
  * Copyright (c) 2012 The Chromium OS Authors.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -37,7 +24,7 @@ void timer_set_base(u64 base)
  * restart. This yields a free running counter guaranteed to take almost 6
  * years to wrap around even at 100GHz clock rate.
  */
-u64 get_ticks(void)
+u64 __attribute__((no_instrument_function)) get_ticks(void)
 {
 	u64 now_tick = rdtsc();
 
@@ -50,7 +37,7 @@ u64 get_ticks(void)
 #define PLATFORM_INFO_MSR 0xce
 
 /* Get the speed of the TSC timer in MHz */
-unsigned long get_tbclk_mhz(void)
+unsigned __attribute__((no_instrument_function)) long get_tbclk_mhz(void)
 {
 	u32 ratio;
 	u64 platform_info = native_read_msr(PLATFORM_INFO_MSR);
@@ -75,7 +62,7 @@ ulong get_timer(ulong base)
 	return get_ms_timer() - base;
 }
 
-ulong timer_get_us(void)
+ulong __attribute__((no_instrument_function)) timer_get_us(void)
 {
 	return get_ticks() / get_tbclk_mhz();
 }

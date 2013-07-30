@@ -4,23 +4,7 @@
  *
  * Based vaguely on the Linux code
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <config.h>
@@ -254,7 +238,7 @@ err_out:
 }
 
 static unsigned long
-mmc_berase(int dev_num, unsigned long start, lbaint_t blkcnt)
+mmc_berase(int dev_num, lbaint_t start, lbaint_t blkcnt)
 {
 	int err = 0;
 	struct mmc *mmc = find_mmc_device(dev_num);
@@ -266,7 +250,8 @@ mmc_berase(int dev_num, unsigned long start, lbaint_t blkcnt)
 
 	if ((start % mmc->erase_grp_size) || (blkcnt % mmc->erase_grp_size))
 		printf("\n\nCaution! Your devices Erase group is 0x%x\n"
-			"The erase range would be change to 0x%lx~0x%lx\n\n",
+		       "The erase range would be change to "
+		       "0x" LBAF "~0x" LBAF "\n\n",
 		       mmc->erase_grp_size, start & ~(mmc->erase_grp_size - 1),
 		       ((start + blkcnt + mmc->erase_grp_size)
 		       & ~(mmc->erase_grp_size - 1)) - 1);
@@ -289,22 +274,24 @@ mmc_berase(int dev_num, unsigned long start, lbaint_t blkcnt)
 }
 
 static ulong
-mmc_write_blocks(struct mmc *mmc, ulong start, lbaint_t blkcnt, const void*src)
+mmc_write_blocks(struct mmc *mmc, lbaint_t start, lbaint_t blkcnt, const void*src)
 {
 	struct mmc_cmd cmd;
 	struct mmc_data data;
 	int timeout = 1000;
 
 	if ((start + blkcnt) > mmc->block_dev.lba) {
-		printf("MMC: block number 0x%lx exceeds max(0x%lx)\n",
+		printf("MMC: block number 0x" LBAF " exceeds max(0x" LBAF ")\n",
 			start + blkcnt, mmc->block_dev.lba);
 		return 0;
 	}
 
-	if (blkcnt > 1)
-		cmd.cmdidx = MMC_CMD_WRITE_MULTIPLE_BLOCK;
-	else
+	if (blkcnt == 0)
+		return 0;
+	else if (blkcnt == 1)
 		cmd.cmdidx = MMC_CMD_WRITE_SINGLE_BLOCK;
+	else
+		cmd.cmdidx = MMC_CMD_WRITE_MULTIPLE_BLOCK;
 
 	if (mmc->high_capacity)
 		cmd.cmdarg = start;
@@ -344,7 +331,7 @@ mmc_write_blocks(struct mmc *mmc, ulong start, lbaint_t blkcnt, const void*src)
 }
 
 static ulong
-mmc_bwrite(int dev_num, ulong start, lbaint_t blkcnt, const void*src)
+mmc_bwrite(int dev_num, lbaint_t start, lbaint_t blkcnt, const void*src)
 {
 	lbaint_t cur, blocks_todo = blkcnt;
 
@@ -367,7 +354,7 @@ mmc_bwrite(int dev_num, ulong start, lbaint_t blkcnt, const void*src)
 	return blkcnt;
 }
 
-static int mmc_read_blocks(struct mmc *mmc, void *dst, ulong start,
+static int mmc_read_blocks(struct mmc *mmc, void *dst, lbaint_t start,
 			   lbaint_t blkcnt)
 {
 	struct mmc_cmd cmd;
@@ -406,7 +393,7 @@ static int mmc_read_blocks(struct mmc *mmc, void *dst, ulong start,
 	return blkcnt;
 }
 
-static ulong mmc_bread(int dev_num, ulong start, lbaint_t blkcnt, void *dst)
+static ulong mmc_bread(int dev_num, lbaint_t start, lbaint_t blkcnt, void *dst)
 {
 	lbaint_t cur, blocks_todo = blkcnt;
 
@@ -418,7 +405,7 @@ static ulong mmc_bread(int dev_num, ulong start, lbaint_t blkcnt, void *dst)
 		return 0;
 
 	if ((start + blkcnt) > mmc->block_dev.lba) {
-		printf("MMC: block number 0x%lx exceeds max(0x%lx)\n",
+		printf("MMC: block number 0x" LBAF " exceeds max(0x" LBAF ")\n",
 			start + blkcnt, mmc->block_dev.lba);
 		return 0;
 	}
@@ -700,16 +687,49 @@ static int mmc_change_freq(struct mmc *mmc)
 	return 0;
 }
 
+static int mmc_set_capacity(struct mmc *mmc, int part_num)
+{
+	switch (part_num) {
+	case 0:
+		mmc->capacity = mmc->capacity_user;
+		break;
+	case 1:
+	case 2:
+		mmc->capacity = mmc->capacity_boot;
+		break;
+	case 3:
+		mmc->capacity = mmc->capacity_rpmb;
+		break;
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+		mmc->capacity = mmc->capacity_gp[part_num - 4];
+		break;
+	default:
+		return -1;
+	}
+
+	mmc->block_dev.lba = lldiv(mmc->capacity, mmc->read_bl_len);
+
+	return 0;
+}
+
 int mmc_switch_part(int dev_num, unsigned int part_num)
 {
 	struct mmc *mmc = find_mmc_device(dev_num);
+	int ret;
 
 	if (!mmc)
 		return -1;
 
-	return mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_PART_CONF,
-			  (mmc->part_config & ~PART_ACCESS_MASK)
-			  | (part_num & PART_ACCESS_MASK));
+	ret = mmc_switch(mmc, EXT_CSD_CMD_SET_NORMAL, EXT_CSD_PART_CONF,
+			 (mmc->part_config & ~PART_ACCESS_MASK)
+			 | (part_num & PART_ACCESS_MASK));
+	if (ret)
+		return ret;
+
+	return mmc_set_capacity(mmc, part_num);
 }
 
 int mmc_getcd(struct mmc *mmc)
@@ -917,7 +937,7 @@ static void mmc_set_bus_width(struct mmc *mmc, uint width)
 
 static int mmc_startup(struct mmc *mmc)
 {
-	int err;
+	int err, i;
 	uint mult, freq;
 	u64 cmult, csize, capacity;
 	struct mmc_cmd cmd;
@@ -1035,8 +1055,12 @@ static int mmc_startup(struct mmc *mmc)
 		cmult = (mmc->csd[2] & 0x00038000) >> 15;
 	}
 
-	mmc->capacity = (csize + 1) << (cmult + 2);
-	mmc->capacity *= mmc->read_bl_len;
+	mmc->capacity_user = (csize + 1) << (cmult + 2);
+	mmc->capacity_user *= mmc->read_bl_len;
+	mmc->capacity_boot = 0;
+	mmc->capacity_rpmb = 0;
+	for (i = 0; i < 4; i++)
+		mmc->capacity_gp[i] = 0;
 
 	if (mmc->read_bl_len > MMC_MAX_BLOCK_LEN)
 		mmc->read_bl_len = MMC_MAX_BLOCK_LEN;
@@ -1075,7 +1099,7 @@ static int mmc_startup(struct mmc *mmc)
 					| ext_csd[EXT_CSD_SEC_CNT + 3] << 24;
 			capacity *= MMC_MAX_BLOCK_LEN;
 			if ((capacity >> 20) > 2 * 1024)
-				mmc->capacity = capacity;
+				mmc->capacity_user = capacity;
 		}
 
 		switch (ext_csd[EXT_CSD_REV]) {
@@ -1117,7 +1141,24 @@ static int mmc_startup(struct mmc *mmc)
 		if ((ext_csd[EXT_CSD_PARTITIONING_SUPPORT] & PART_SUPPORT) ||
 		    ext_csd[EXT_CSD_BOOT_MULT])
 			mmc->part_config = ext_csd[EXT_CSD_PART_CONF];
+
+		mmc->capacity_boot = ext_csd[EXT_CSD_BOOT_MULT] << 17;
+
+		mmc->capacity_rpmb = ext_csd[EXT_CSD_RPMB_MULT] << 17;
+
+		for (i = 0; i < 4; i++) {
+			int idx = EXT_CSD_GP_SIZE_MULT + i * 3;
+			mmc->capacity_gp[i] = (ext_csd[idx + 2] << 16) +
+				(ext_csd[idx + 1] << 8) + ext_csd[idx];
+			mmc->capacity_gp[i] *=
+				ext_csd[EXT_CSD_HC_ERASE_GRP_SIZE];
+			mmc->capacity_gp[i] *= ext_csd[EXT_CSD_HC_WP_GRP_SIZE];
+		}
 	}
+
+	err = mmc_set_capacity(mmc, mmc->part_num);
+	if (err)
+		return err;
 
 	if (IS_SD(mmc))
 		err = sd_change_freq(mmc);
@@ -1447,3 +1488,137 @@ int mmc_initialize(bd_t *bis)
 	do_preinit();
 	return 0;
 }
+
+#ifdef CONFIG_SUPPORT_EMMC_BOOT
+/*
+ * This function changes the size of boot partition and the size of rpmb
+ * partition present on EMMC devices.
+ *
+ * Input Parameters:
+ * struct *mmc: pointer for the mmc device strcuture
+ * bootsize: size of boot partition
+ * rpmbsize: size of rpmb partition
+ *
+ * Returns 0 on success.
+ */
+
+int mmc_boot_partition_size_change(struct mmc *mmc, unsigned long bootsize,
+				unsigned long rpmbsize)
+{
+	int err;
+	struct mmc_cmd cmd;
+
+	/* Only use this command for raw EMMC moviNAND. Enter backdoor mode */
+	cmd.cmdidx = MMC_CMD_RES_MAN;
+	cmd.resp_type = MMC_RSP_R1b;
+	cmd.cmdarg = MMC_CMD62_ARG1;
+
+	err = mmc_send_cmd(mmc, &cmd, NULL);
+	if (err) {
+		debug("mmc_boot_partition_size_change: Error1 = %d\n", err);
+		return err;
+	}
+
+	/* Boot partition changing mode */
+	cmd.cmdidx = MMC_CMD_RES_MAN;
+	cmd.resp_type = MMC_RSP_R1b;
+	cmd.cmdarg = MMC_CMD62_ARG2;
+
+	err = mmc_send_cmd(mmc, &cmd, NULL);
+	if (err) {
+		debug("mmc_boot_partition_size_change: Error2 = %d\n", err);
+		return err;
+	}
+	/* boot partition size is multiple of 128KB */
+	bootsize = (bootsize * 1024) / 128;
+
+	/* Arg: boot partition size */
+	cmd.cmdidx = MMC_CMD_RES_MAN;
+	cmd.resp_type = MMC_RSP_R1b;
+	cmd.cmdarg = bootsize;
+
+	err = mmc_send_cmd(mmc, &cmd, NULL);
+	if (err) {
+		debug("mmc_boot_partition_size_change: Error3 = %d\n", err);
+		return err;
+	}
+	/* RPMB partition size is multiple of 128KB */
+	rpmbsize = (rpmbsize * 1024) / 128;
+	/* Arg: RPMB partition size */
+	cmd.cmdidx = MMC_CMD_RES_MAN;
+	cmd.resp_type = MMC_RSP_R1b;
+	cmd.cmdarg = rpmbsize;
+
+	err = mmc_send_cmd(mmc, &cmd, NULL);
+	if (err) {
+		debug("mmc_boot_partition_size_change: Error4 = %d\n", err);
+		return err;
+	}
+	return 0;
+}
+
+/*
+ * This function shall form and send the commands to open / close the
+ * boot partition specified by user.
+ *
+ * Input Parameters:
+ * ack: 0x0 - No boot acknowledge sent (default)
+ *	0x1 - Boot acknowledge sent during boot operation
+ * part_num: User selects boot data that will be sent to master
+ *	0x0 - Device not boot enabled (default)
+ *	0x1 - Boot partition 1 enabled for boot
+ *	0x2 - Boot partition 2 enabled for boot
+ * access: User selects partitions to access
+ *	0x0 : No access to boot partition (default)
+ *	0x1 : R/W boot partition 1
+ *	0x2 : R/W boot partition 2
+ *	0x3 : R/W Replay Protected Memory Block (RPMB)
+ *
+ * Returns 0 on success.
+ */
+int mmc_boot_part_access(struct mmc *mmc, u8 ack, u8 part_num, u8 access)
+{
+	int err;
+	struct mmc_cmd cmd;
+
+	/* Boot ack enable, boot partition enable , boot partition access */
+	cmd.cmdidx = MMC_CMD_SWITCH;
+	cmd.resp_type = MMC_RSP_R1b;
+
+	cmd.cmdarg = (MMC_SWITCH_MODE_WRITE_BYTE << 24) |
+			(EXT_CSD_PART_CONF << 16) |
+			((EXT_CSD_BOOT_ACK(ack) |
+			EXT_CSD_BOOT_PART_NUM(part_num) |
+			EXT_CSD_PARTITION_ACCESS(access)) << 8);
+
+	err = mmc_send_cmd(mmc, &cmd, NULL);
+	if (err) {
+		if (access) {
+			debug("mmc boot partition#%d open fail:Error1 = %d\n",
+			      part_num, err);
+		} else {
+			debug("mmc boot partition#%d close fail:Error = %d\n",
+			      part_num, err);
+		}
+		return err;
+	}
+
+	if (access) {
+		/* 4bit transfer mode at booting time. */
+		cmd.cmdidx = MMC_CMD_SWITCH;
+		cmd.resp_type = MMC_RSP_R1b;
+
+		cmd.cmdarg = (MMC_SWITCH_MODE_WRITE_BYTE << 24) |
+				(EXT_CSD_BOOT_BUS_WIDTH << 16) |
+				((1 << 0) << 8);
+
+		err = mmc_send_cmd(mmc, &cmd, NULL);
+		if (err) {
+			debug("mmc boot partition#%d open fail:Error2 = %d\n",
+			      part_num, err);
+			return err;
+		}
+	}
+	return 0;
+}
+#endif

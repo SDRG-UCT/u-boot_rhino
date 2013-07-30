@@ -16,24 +16,7 @@
  * BBB support based on /sys/dev/usb/umass.c from
  * FreeBSD.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /* Note:
@@ -170,9 +153,9 @@ int usb_stor_get_info(struct usb_device *dev, struct us_data *us,
 		      block_dev_desc_t *dev_desc);
 int usb_storage_probe(struct usb_device *dev, unsigned int ifnum,
 		      struct us_data *ss);
-unsigned long usb_stor_read(int device, unsigned long blknr,
+unsigned long usb_stor_read(int device, lbaint_t blknr,
 			    lbaint_t blkcnt, void *buffer);
-unsigned long usb_stor_write(int device, unsigned long blknr,
+unsigned long usb_stor_write(int device, lbaint_t blknr,
 			     lbaint_t blkcnt, const void *buffer);
 struct usb_device * usb_get_dev_index(int index);
 void uhci_show_temp_int_td(void);
@@ -1054,7 +1037,7 @@ static void usb_bin_fixup(struct usb_device_descriptor descriptor,
 }
 #endif /* CONFIG_USB_BIN_FIXUP */
 
-unsigned long usb_stor_read(int device, unsigned long blknr,
+unsigned long usb_stor_read(int device, lbaint_t blknr,
 			    lbaint_t blkcnt, void *buffer)
 {
 	lbaint_t start, blks;
@@ -1127,7 +1110,7 @@ retry_it:
 	return blkcnt;
 }
 
-unsigned long usb_stor_write(int device, unsigned long blknr,
+unsigned long usb_stor_write(int device, lbaint_t blknr,
 				lbaint_t blkcnt, const void *buffer)
 {
 	lbaint_t start, blks;

@@ -1,23 +1,7 @@
 /*
  * Copyright (c) 2011, Google Inc. All rights reserved.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 
@@ -49,6 +33,7 @@ static int next_id = BOOTSTAGE_ID_USER;
 enum {
 	BOOTSTAGE_VERSION	= 0,
 	BOOTSTAGE_MAGIC		= 0xb00757a3,
+	BOOTSTAGE_DIGITS	= 9,
 };
 
 struct bootstage_hdr {
@@ -165,21 +150,6 @@ uint32_t bootstage_accum(enum bootstage_id id)
 	return duration;
 }
 
-static void print_time(unsigned long us_time)
-{
-	char str[15], *s;
-	int grab = 3;
-
-	/* We don't seem to have %'d in U-Boot */
-	sprintf(str, "%12lu", us_time);
-	for (s = str + 3; *s; s += grab) {
-		if (s != str + 3)
-			putc(s[-1] != ' ' ? ',' : ' ');
-		printf("%.*s", grab, s);
-		grab = 3;
-	}
-}
-
 /**
  * Get a record name as a printable string
  *
@@ -208,10 +178,10 @@ static uint32_t print_time_record(enum bootstage_id id,
 
 	if (prev == -1U) {
 		printf("%11s", "");
-		print_time(rec->time_us);
+		print_grouped_ull(rec->time_us, BOOTSTAGE_DIGITS);
 	} else {
-		print_time(rec->time_us);
-		print_time(rec->time_us - prev);
+		print_grouped_ull(rec->time_us, BOOTSTAGE_DIGITS);
+		print_grouped_ull(rec->time_us - prev, BOOTSTAGE_DIGITS);
 	}
 	printf("  %s\n", get_record_name(buf, sizeof(buf), rec));
 
@@ -445,9 +415,9 @@ int bootstage_unstash(void *base, int size)
 	}
 
 	if (hdr->count * sizeof(*rec) > hdr->size) {
-		debug("%s: Bootstage has %d records needing %d bytes, but "
+		debug("%s: Bootstage has %d records needing %lu bytes, but "
 			"only %d bytes is available\n", __func__, hdr->count,
-		      hdr->count * sizeof(*rec), hdr->size);
+		      (ulong)hdr->count * sizeof(*rec), hdr->size);
 		return -1;
 	}
 

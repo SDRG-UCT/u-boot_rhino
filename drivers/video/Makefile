@@ -2,23 +2,7 @@
 # (C) Copyright 2000-2007
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
-# See file CREDITS for list of people who contributed to this
-# project.
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation; either version 2 of
-# the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-# MA 02111-1307 USA
+# SPDX-License-Identifier:	GPL-2.0+
 #
 
 include $(TOPDIR)/config.mk
@@ -49,6 +33,7 @@ COBJS-$(CONFIG_VIDEO_MB862xx) += mb862xx.o videomodes.o
 COBJS-$(CONFIG_VIDEO_MB86R0xGDC) += mb86r0xgdc.o videomodes.o
 COBJS-$(CONFIG_VIDEO_MX3) += mx3fb.o videomodes.o
 COBJS-$(CONFIG_VIDEO_IPUV3) += mxc_ipuv3_fb.o ipu_common.o ipu_disp.o
+COBJS-$(CONFIG_VIDEO_MXS) += mxsfb.o videomodes.o
 COBJS-$(CONFIG_VIDEO_OMAP3) += omap3_dss.o
 COBJS-$(CONFIG_VIDEO_SED13806) += sed13806.o
 COBJS-$(CONFIG_VIDEO_SM501) += sm501.o

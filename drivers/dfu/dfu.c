@@ -4,22 +4,11 @@
  * Copyright (C) 2012 Samsung Electronics
  * author: Lukasz Majewski <l.majewski@samsung.com>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
+#include <errno.h>
 #include <malloc.h>
 #include <mmc.h>
 #include <fat.h>
@@ -41,8 +30,34 @@ static int dfu_find_alt_num(const char *s)
 	return ++i;
 }
 
-static unsigned char __aligned(CONFIG_SYS_CACHELINE_SIZE)
-				     dfu_buf[DFU_DATA_BUF_SIZE];
+static unsigned char *dfu_buf;
+static unsigned long dfu_buf_size = CONFIG_SYS_DFU_DATA_BUF_SIZE;
+
+static unsigned char *dfu_free_buf(void)
+{
+	free(dfu_buf);
+	dfu_buf = NULL;
+	return dfu_buf;
+}
+
+static unsigned char *dfu_get_buf(void)
+{
+	char *s;
+
+	if (dfu_buf != NULL)
+		return dfu_buf;
+
+	s = getenv("dfu_bufsiz");
+	dfu_buf_size = s ? (unsigned long)simple_strtol(s, NULL, 16) :
+			CONFIG_SYS_DFU_DATA_BUF_SIZE;
+
+	dfu_buf = memalign(CONFIG_SYS_CACHELINE_SIZE, dfu_buf_size);
+	if (dfu_buf == NULL)
+		printf("%s: Could not memalign 0x%lx bytes\n",
+		       __func__, dfu_buf_size);
+
+	return dfu_buf;
+}
 
 static int dfu_write_buffer_drain(struct dfu_entity *dfu)
 {
@@ -87,8 +102,10 @@ int dfu_write(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 		dfu->offset = 0;
 		dfu->bad_skip = 0;
 		dfu->i_blk_seq_num = 0;
-		dfu->i_buf_start = dfu_buf;
-		dfu->i_buf_end = dfu_buf + sizeof(dfu_buf);
+		dfu->i_buf_start = dfu_get_buf();
+		if (dfu->i_buf_start == NULL)
+			return -ENOMEM;
+		dfu->i_buf_end = dfu_get_buf() + dfu_buf_size;
 		dfu->i_buf = dfu->i_buf_start;
 
 		dfu->inited = 1;
@@ -148,11 +165,12 @@ int dfu_write(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 		printf("\nDFU complete CRC32: 0x%08x\n", dfu->crc);
 
 		/* clear everything */
+		dfu_free_buf();
 		dfu->crc = 0;
 		dfu->offset = 0;
 		dfu->i_blk_seq_num = 0;
 		dfu->i_buf_start = dfu_buf;
-		dfu->i_buf_end = dfu_buf + sizeof(dfu_buf);
+		dfu->i_buf_end = dfu_buf;
 		dfu->i_buf = dfu->i_buf_start;
 
 		dfu->inited = 0;
@@ -218,7 +236,11 @@ int dfu_read(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 	       __func__, dfu->name, buf, size, blk_seq_num, dfu->i_buf);
 
 	if (!dfu->inited) {
-		ret = dfu->read_medium(dfu, 0, buf, &dfu->r_left);
+		dfu->i_buf_start = dfu_get_buf();
+		if (dfu->i_buf_start == NULL)
+			return -ENOMEM;
+
+		ret = dfu->read_medium(dfu, 0, dfu->i_buf_start, &dfu->r_left);
 		if (ret != 0) {
 			debug("%s: failed to get r_left\n", __func__);
 			return ret;
@@ -229,8 +251,7 @@ int dfu_read(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 		dfu->i_blk_seq_num = 0;
 		dfu->crc = 0;
 		dfu->offset = 0;
-		dfu->i_buf_start = dfu_buf;
-		dfu->i_buf_end = dfu_buf + sizeof(dfu_buf);
+		dfu->i_buf_end = dfu_get_buf() + dfu_buf_size;
 		dfu->i_buf = dfu->i_buf_start;
 		dfu->b_left = 0;
 
@@ -257,11 +278,12 @@ int dfu_read(struct dfu_entity *dfu, void *buf, int size, int blk_seq_num)
 		debug("%s: %s CRC32: 0x%x\n", __func__, dfu->name, dfu->crc);
 		puts("\nUPLOAD ... done\nCtrl+C to exit ...\n");
 
+		dfu_free_buf();
 		dfu->i_blk_seq_num = 0;
 		dfu->crc = 0;
 		dfu->offset = 0;
 		dfu->i_buf_start = dfu_buf;
-		dfu->i_buf_end = dfu_buf + sizeof(dfu_buf);
+		dfu->i_buf_end = dfu_buf;
 		dfu->i_buf = dfu->i_buf_start;
 		dfu->b_left = 0;
 

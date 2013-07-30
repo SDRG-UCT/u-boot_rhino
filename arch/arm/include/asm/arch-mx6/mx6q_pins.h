@@ -1,55 +1,15 @@
 /*
  * Copyright (C) 2011-2013 Freescale Semiconductor, Inc. All Rights Reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  *
  * Auto Generate file, please don't edit it
- *
  */
 
 #ifndef __ASM_ARCH_MX6_MX6Q_PINS_H__
 #define __ASM_ARCH_MX6_MX6Q_PINS_H__
 
 #include <asm/imx-common/iomux-v3.h>
-
-/* Use to set PAD control */
-#define PAD_CTL_HYS		(1 << 16)
-#define PAD_CTL_PUS_100K_DOWN	(0 << 14)
-#define PAD_CTL_PUS_47K_UP	(1 << 14)
-#define PAD_CTL_PUS_100K_UP	(2 << 14)
-#define PAD_CTL_PUS_22K_UP	(3 << 14)
-
-#define PAD_CTL_PUE		(1 << 13)
-#define PAD_CTL_PKE		(1 << 12)
-#define PAD_CTL_ODE		(1 << 11)
-#define PAD_CTL_SPEED_LOW	(1 << 6)
-#define PAD_CTL_SPEED_MED	(2 << 6)
-#define PAD_CTL_SPEED_HIGH	(3 << 6)
-#define PAD_CTL_DSE_DISABLE	(0 << 3)
-#define PAD_CTL_DSE_240ohm	(1 << 3)
-#define PAD_CTL_DSE_120ohm	(2 << 3)
-#define PAD_CTL_DSE_80ohm	(3 << 3)
-#define PAD_CTL_DSE_60ohm	(4 << 3)
-#define PAD_CTL_DSE_48ohm	(5 << 3)
-#define PAD_CTL_DSE_40ohm	(6 << 3)
-#define PAD_CTL_DSE_34ohm	(7 << 3)
-#define PAD_CTL_SRE_FAST	(1 << 0)
-#define PAD_CTL_SRE_SLOW	(0 << 0)
-
-#define NO_MUX_I                0
-#define NO_PAD_I                0
 
 enum {
 	MX6_PAD_SD2_DAT1__USDHC2_DAT1		= IOMUX_PAD(0x0360, 0x004C, 0, 0x0000, 0, 0),

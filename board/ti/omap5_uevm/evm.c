@@ -4,26 +4,10 @@
  * Aneesh V       <aneesh@ti.com>
  * Steve Sakoman  <steve@sakoman.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <common.h>
-#include <twl6035.h>
+#include <palmas.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/mmc_host_def.h>
 
@@ -63,30 +47,34 @@ int board_eth_init(bd_t *bis)
  */
 int misc_init_r(void)
 {
-#ifdef CONFIG_TWL6035_POWER
-	twl6035_init_settings();
+#ifdef CONFIG_PALMAS_POWER
+	palmas_init_settings();
 #endif
 	return 0;
 }
 
 void set_muxconf_regs_essential(void)
 {
-	do_set_mux(CONTROL_PADCONF_CORE, core_padconf_array_essential,
+	do_set_mux((*ctrl)->control_padconf_core_base,
+		   core_padconf_array_essential,
 		   sizeof(core_padconf_array_essential) /
 		   sizeof(struct pad_conf_entry));
 
-	do_set_mux(CONTROL_PADCONF_WKUP, wkup_padconf_array_essential,
+	do_set_mux((*ctrl)->control_padconf_wkup_base,
+		   wkup_padconf_array_essential,
 		   sizeof(wkup_padconf_array_essential) /
 		   sizeof(struct pad_conf_entry));
 }
 
 void set_muxconf_regs_non_essential(void)
 {
-	do_set_mux(CONTROL_PADCONF_CORE, core_padconf_array_non_essential,
+	do_set_mux((*ctrl)->control_padconf_core_base,
+		   core_padconf_array_non_essential,
 		   sizeof(core_padconf_array_non_essential) /
 		   sizeof(struct pad_conf_entry));
 
-	do_set_mux(CONTROL_PADCONF_WKUP, wkup_padconf_array_non_essential,
+	do_set_mux((*ctrl)->control_padconf_wkup_base,
+		   wkup_padconf_array_non_essential,
 		   sizeof(wkup_padconf_array_non_essential) /
 		   sizeof(struct pad_conf_entry));
 }

@@ -5,20 +5,7 @@
  * (C) Copyright 2007 Pengutronix, Sascha Hauer <s.hauer@pengutronix.de>
  * (C) Copyright 2007 Pengutronix, Juergen Beisert <j.beisert@pengutronix.de>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -516,9 +503,7 @@ static int fec_open(struct eth_device *edev)
 #ifdef FEC_QUIRK_ENET_MAC
 	{
 		u32 ecr = readl(&fec->eth->ecntrl) & ~FEC_ECNTRL_SPEED;
-		u32 rcr = (readl(&fec->eth->r_cntrl) &
-				~(FEC_RCNTRL_RMII | FEC_RCNTRL_RMII_10T)) |
-				FEC_RCNTRL_RGMII | FEC_RCNTRL_MII_MODE;
+		u32 rcr = readl(&fec->eth->r_cntrl) & ~FEC_RCNTRL_RMII_10T;
 		if (speed == _1000BASET)
 			ecr |= FEC_ECNTRL_SPEED;
 		else if (speed != _100BASET)
@@ -562,7 +547,6 @@ static int fec_init(struct eth_device *dev, bd_t* bd)
 		}
 		memset(fec->tbd_base, 0, size);
 		fec_tbd_init(fec);
-		flush_dcache_range((unsigned)fec->tbd_base, size);
 	}
 
 	/*
@@ -738,6 +722,28 @@ static int fec_send(struct eth_device *dev, void *packet, int length)
 	size = roundup(2 * sizeof(struct fec_bd), ARCH_DMA_MINALIGN);
 	addr = (uint32_t)fec->tbd_base;
 	flush_dcache_range(addr, addr + size);
+
+	/*
+	 * Below we read the DMA descriptor's last four bytes back from the
+	 * DRAM. This is important in order to make sure that all WRITE
+	 * operations on the bus that were triggered by previous cache FLUSH
+	 * have completed.
+	 *
+	 * Otherwise, on MX28, it is possible to observe a corruption of the
+	 * DMA descriptors. Please refer to schematic "Figure 1-2" in MX28RM
+	 * for the bus structure of MX28. The scenario is as follows:
+	 *
+	 * 1) ARM core triggers a series of WRITEs on the AHB_ARB2 bus going
+	 *    to DRAM due to flush_dcache_range()
+	 * 2) ARM core writes the FEC registers via AHB_ARB2
+	 * 3) FEC DMA starts reading/writing from/to DRAM via AHB_ARB3
+	 *
+	 * Note that 2) does sometimes finish before 1) due to reordering of
+	 * WRITE accesses on the AHB bus, therefore triggering 3) before the
+	 * DMA descriptor is fully written into DRAM. This results in occasional
+	 * corruption of the DMA descriptor.
+	 */
+	readl(addr + size - 4);
 
 	/*
 	 * Enable SmartDMA transmit task

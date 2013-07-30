@@ -7,23 +7,7 @@
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -171,6 +155,9 @@ static void enable_cpc(void)
 #endif
 #ifdef CONFIG_SYS_FSL_ERRATUM_CPC_A003
 		setbits_be32(&cpc->cpchdbcr0, CPC_HDBCR0_DATA_ECC_SCRUB_DIS);
+#endif
+#ifdef CONFIG_SYS_FSL_ERRATUM_A006593
+		setbits_be32(&cpc->cpchdbcr0, 1 << (31 - 21));
 #endif
 
 		out_be32(&cpc->cpccsr0, CPC_CSR0_CE | CPC_CSR0_PE);
@@ -337,7 +324,7 @@ int enable_cluster_l2(void)
 			while ((in_be32(&l2cache->l2csr0)
 				& (L2CSR0_L2FI|L2CSR0_L2LFC)) != 0)
 					;
-			out_be32(&l2cache->l2csr0, L2CSR0_L2E);
+			out_be32(&l2cache->l2csr0, L2CSR0_L2E|L2CSR0_L2PE|L2CSR0_L2REP_MODE);
 		}
 		i++;
 	} while (!(cluster & TP_CLUSTER_EOC));
@@ -564,7 +551,7 @@ skip_l2:
 
 #ifdef CONFIG_SYS_SRIO
 	srio_init();
-#ifdef CONFIG_SYS_FSL_SRIO_PCIE_BOOT_MASTER 
+#ifdef CONFIG_SRIO_PCIE_BOOT_MASTER
 	char *s = getenv("bootmaster");
 	if (s) {
 		if (!strcmp(s, "SRIO1")) {
@@ -635,6 +622,28 @@ skip_l2:
 				(DCSR_DCFG_ECC_DISABLE_USB1 |
 				 DCSR_DCFG_ECC_DISABLE_USB2));
 	}
+#endif
+
+#if defined(CONFIG_SYS_FSL_USB_DUAL_PHY_ENABLE)
+		ccsr_usb_phy_t *usb_phy =
+			(void *)CONFIG_SYS_MPC85xx_USB1_PHY_ADDR;
+		setbits_be32(&usb_phy->pllprg[1],
+			     CONFIG_SYS_FSL_USB_PLLPRG2_PHY2_CLK_EN |
+			     CONFIG_SYS_FSL_USB_PLLPRG2_PHY1_CLK_EN |
+			     CONFIG_SYS_FSL_USB_PLLPRG2_MFI |
+			     CONFIG_SYS_FSL_USB_PLLPRG2_PLL_EN);
+		setbits_be32(&usb_phy->port1.ctrl,
+			     CONFIG_SYS_FSL_USB_CTRL_PHY_EN);
+		setbits_be32(&usb_phy->port1.drvvbuscfg,
+			     CONFIG_SYS_FSL_USB_DRVVBUS_CR_EN);
+		setbits_be32(&usb_phy->port1.pwrfltcfg,
+			     CONFIG_SYS_FSL_USB_PWRFLT_CR_EN);
+		setbits_be32(&usb_phy->port2.ctrl,
+			     CONFIG_SYS_FSL_USB_CTRL_PHY_EN);
+		setbits_be32(&usb_phy->port2.drvvbuscfg,
+			     CONFIG_SYS_FSL_USB_DRVVBUS_CR_EN);
+		setbits_be32(&usb_phy->port2.pwrfltcfg,
+			     CONFIG_SYS_FSL_USB_PWRFLT_CR_EN);
 #endif
 
 #ifdef CONFIG_FMAN_ENET

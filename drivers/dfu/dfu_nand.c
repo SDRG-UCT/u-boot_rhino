@@ -7,19 +7,7 @@
  * Copyright (C) 2012 Samsung Electronics
  * author: Lukasz Majewski <l.majewski@samsung.com>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -63,12 +51,26 @@ static int nand_block_op(enum dfu_nand_op op, struct dfu_entity *dfu,
 
 	nand = &nand_info[nand_curr_device];
 
-	if (op == DFU_OP_READ)
+	if (op == DFU_OP_READ) {
 		ret = nand_read_skip_bad(nand, start, &count, &actual,
 				lim, buf);
-	else
+	} else {
+		nand_erase_options_t opts;
+
+		memset(&opts, 0, sizeof(opts));
+		opts.offset = start;
+		opts.length = count;
+		opts.spread = 1;
+		opts.quiet = 1;
+		opts.lim = lim;
+		/* first erase */
+		ret = nand_erase_opts(nand, &opts);
+		if (ret)
+			return ret;
+		/* then write */
 		ret = nand_write_skip_bad(nand, start, &count, &actual,
 				lim, buf, 0);
+	}
 
 	if (ret != 0) {
 		printf("%s: nand_%s_skip_bad call failed at %llx!\n",

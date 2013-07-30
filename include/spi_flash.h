@@ -8,17 +8,7 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * version 2 as published by the Free Software Foundation. 
  */
 #ifndef _SPI_FLASH_H_
 #define _SPI_FLASH_H_
@@ -38,6 +28,16 @@ struct spi_flash {
 	u32		page_size;
 	/* Erase (sector) size */
 	u32		sector_size;
+#ifdef CONFIG_SPI_FLASH_BAR
+	/* Bank read cmd */
+	u8		bank_read_cmd;
+	/* Bank write cmd */
+	u8		bank_write_cmd;
+	/* Current flash bank */
+	u8		bank_curr;
+#endif
+	/* Poll cmd - for flash erase/program */
+	u8		poll_cmd;
 
 	void *memory_map;	/* Address of read-only SPI flash access */
 	int		(*read)(struct spi_flash *flash, u32 offset,

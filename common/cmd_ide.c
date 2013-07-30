@@ -2,24 +2,7 @@
  * (C) Copyright 2000-2011
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -830,7 +813,7 @@ static void ide_ident(block_dev_desc_t *dev_desc)
 
 /* ------------------------------------------------------------------------- */
 
-ulong ide_read(int device, ulong blknr, lbaint_t blkcnt, void *buffer)
+ulong ide_read(int device, lbaint_t blknr, lbaint_t blkcnt, void *buffer)
 {
 	ulong n = 0;
 	unsigned char c;
@@ -844,7 +827,7 @@ ulong ide_read(int device, ulong blknr, lbaint_t blkcnt, void *buffer)
 		lba48 = 1;
 	}
 #endif
-	debug("ide_read dev %d start %lX, blocks " LBAF " buffer at %lX\n",
+	debug("ide_read dev %d start " LBAF ", blocks " LBAF " buffer at %lX\n",
 	      device, blknr, blkcnt, (ulong) buffer);
 
 	ide_led(DEVICE_LED(device), 1);	/* LED on       */
@@ -934,8 +917,8 @@ ulong ide_read(int device, ulong blknr, lbaint_t blkcnt, void *buffer)
 
 		if ((c & (ATA_STAT_DRQ | ATA_STAT_BUSY | ATA_STAT_ERR)) !=
 		    ATA_STAT_DRQ) {
-			printf("Error (no IRQ) dev %d blk %ld: status %#02x\n",
-				device, blknr, c);
+			printf("Error (no IRQ) dev %d blk " LBAF ": status "
+			       "%#02x\n", device, blknr, c);
 			break;
 		}
 
@@ -954,7 +937,7 @@ IDE_READ_E:
 /* ------------------------------------------------------------------------- */
 
 
-ulong ide_write(int device, ulong blknr, lbaint_t blkcnt, const void *buffer)
+ulong ide_write(int device, lbaint_t blknr, lbaint_t blkcnt, const void *buffer)
 {
 	ulong n = 0;
 	unsigned char c;
@@ -1022,8 +1005,8 @@ ulong ide_write(int device, ulong blknr, lbaint_t blkcnt, const void *buffer)
 
 		if ((c & (ATA_STAT_DRQ | ATA_STAT_BUSY | ATA_STAT_ERR)) !=
 		    ATA_STAT_DRQ) {
-			printf("Error (no IRQ) dev %d blk %ld: status %#02x\n",
-				device, blknr, c);
+			printf("Error (no IRQ) dev %d blk " LBAF ": status "
+				"%#02x\n", device, blknr, c);
 			goto WR_OUT;
 		}
 
