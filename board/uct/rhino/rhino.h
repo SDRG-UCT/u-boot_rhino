@@ -35,19 +35,20 @@ const omap3_sysinfo sysinfo = {
 #ifdef CONFIG_FPGA
 
 /* FPGA CS1 to CS6 configuration */
-#define GPMC_FPGA_CONFIG1       0x2C001201
-#define GPMC_FPGA_CONFIG2       0x00050500
+#define GPMC_FPGA_CONFIG1       0x28011201
+#define GPMC_FPGA_CONFIG2       0x00061F01
 #define GPMC_FPGA_CONFIG3       0x00030301
-#define GPMC_FPGA_CONFIG4       0x05030503
-#define GPMC_FPGA_CONFIG5       0x00050608
+#define GPMC_FPGA_CONFIG4       0x05831E84
+#define GPMC_FPGA_CONFIG5       0x001D061F
 #define GPMC_FPGA_CONFIG6       0x04030000
 
-#define FPGA_CS1_BASE           0x08000000
-#define FPGA_CS2_BASE           0x10000000
-#define FPGA_CS3_BASE           0x18000000
-#define FPGA_CS4_BASE           0x20000000
-#define FPGA_CS5_BASE           0x28000000
-#define FPGA_CS6_BASE           0x38000000
+#define FPGA_CS1_BASE           0x04000000
+#define FPGA_CS2_BASE           0x08000000
+#define FPGA_CS3_BASE           0x10000000
+#define FPGA_CS4_BASE           0x18000000
+#define FPGA_CS5_BASE           0x20000000
+#define FPGA_CS6_BASE           0x28000000
+#define FPGA_CS7_BASE		0x38000000
 
 #define FPGA_CCLK	122
 #define FPGA_DIN	123

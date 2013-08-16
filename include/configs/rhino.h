@@ -25,6 +25,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define DEBUG
+
 /*
  * High Level Configuration Options
  */
@@ -177,9 +179,9 @@
 /*
  * Board NAND Info.
  */
-#define CONFIG_SYS_NAND_ADDR		NAND_BASE	/* physical address */
+#define CONFIG_SYS_NAND_ADDR		0x00000000	/* physical address */
 							/* to access nand */
-#define CONFIG_SYS_NAND_BASE		NAND_BASE	/* physical address */
+#define CONFIG_SYS_NAND_BASE		0x00000000	/* physical address */
 							/* to access */
 							/* nand at CS0 */
 
@@ -229,12 +231,15 @@
 	"loadmlo=tftp ${loadaddr} MLO\0" \
 	"loaduboot=tftp ${loadaddr} u-boot.img\0" \
 	"loaduimage=tftp ${loadaddr} uImage\0" \
-        "updatemlo=nandecc hw;nand erase 0x0 0x50000;" \
+        "savemlo=nandecc hw;nand erase 0x0 0x50000;" \
                 "nand write ${loadaddr} 0x0 0x50000\0" \
-	"updateuboot=nandecc hw;nand erase 0x80000 0x1C0000;" \
+	"saveuboot=nandecc hw;nand erase 0x80000 0x1C0000;" \
 		"nand write ${loadaddr} 0x80000 0x1C0000\0" \
-	"updateuimage=nandecc hw;nand erase 0x280000 0x500000;" \
+	"saveuimage=nandecc hw;nand erase 0x280000 0x500000;" \
 		"nand write ${loadaddr} 0x280000 0x500000\0" \
+	"updatemlo=run clearmem; run loadmlo; run savemlo\0" \
+	"updateuboot=run clearmem; run loaduboot; run saveuboot\0" \
+	"updateuimage=run clearmem; run loaduimage; run saveuimage\0" \
 
 
 #define CONFIG_BOOTCOMMAND \

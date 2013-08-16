@@ -204,12 +204,13 @@ int board_init(void)
 
 #ifdef CONFIG_FPGA
 	/* Configure GPMC for FPGA memory accesses */
-        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[1], FPGA_CS1_BASE, GPMC_SIZE_128M);
+        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[1], FPGA_CS1_BASE, GPMC_SIZE_64M);
         enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[2], FPGA_CS2_BASE, GPMC_SIZE_128M);
         enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[3], FPGA_CS3_BASE, GPMC_SIZE_128M);
         enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[4], FPGA_CS4_BASE, GPMC_SIZE_128M);
         enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[5], FPGA_CS5_BASE, GPMC_SIZE_128M);
         enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[6], FPGA_CS6_BASE, GPMC_SIZE_128M);
+	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[7], FPGA_CS7_BASE, GPMC_SIZE_128M);
 
         fpga_init();
         fpga_add(fpga_xilinx, &fpga);
