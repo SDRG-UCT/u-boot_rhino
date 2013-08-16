@@ -472,6 +472,10 @@ Ira W. Snyder <iws@ovro.caltech.edu>
 
 	P2020COME	P2020
 
+York Sun <yorksun@freescale.com>
+
+	T4240EMU	T4240
+
 Timur Tabi <timur@freescale.com>
 
 	MPC8349E-mITX	MPC8349
@@ -538,6 +542,10 @@ John Zhan <zhanz@sinovee.com>
 Detlev Zundel <dzu@denx.de>
 
 	inka4x0		MPC5200
+
+Po Liu <po.liu@freescale.com>
+
+	C29XPCIE	C29X
 
 -------------------------------------------------------------------------
 
@@ -1358,7 +1366,7 @@ Dimitar Penev <dpn@switchfin.org>
 #	Board		CPU						#
 #########################################################################
 
-Macpaul Lin <macpaul@andestech.com>
+Andes <uboot@andestech.com>
 
 	ADP-AG101	N1213 (AG101 SoC)
 	ADP-AG101P	N1213 (AG101P XC5 FPGA)
