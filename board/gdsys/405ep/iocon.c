@@ -30,6 +30,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define LATCH1_BASE (CONFIG_SYS_LATCH_BASE + 0x100)
 #define LATCH2_BASE (CONFIG_SYS_LATCH_BASE + 0x200)
 
+#define MAX_MUX_CHANNELS 2
+
 enum {
 	UNITTYPE_MAIN_SERVER = 0,
 	UNITTYPE_MAIN_USER = 1,
@@ -44,6 +46,8 @@ enum {
 	HWVER_120 = 3,
 	HWVER_200 = 4,
 	HWVER_210 = 5,
+	HWVER_220 = 6,
+	HWVER_230 = 7,
 };
 
 enum {
@@ -74,6 +78,11 @@ enum {
 };
 
 enum {
+	CARRIER_SPEED_1G = 0,
+	CARRIER_SPEED_2_5G = 1,
+};
+
+enum {
 	MCFPGA_DONE = 1 << 0,
 	MCFPGA_INIT_N = 1 << 1,
 	MCFPGA_PROGRAM_N = 1 << 2,
@@ -90,7 +99,6 @@ unsigned int mclink_fpgacount;
 struct ihs_fpga *fpga_ptr[] = CONFIG_SYS_FPGA_PTR;
 
 static int setup_88e1518(const char *bus, unsigned char addr);
-static int verify_88e1518(const char *bus, unsigned char addr);
 
 int fpga_set_reg(u32 fpga, u16 *reg, off_t regoff, u16 data)
 {
@@ -156,7 +164,7 @@ int checkboard(void)
 	return 0;
 }
 
-static void print_fpga_info(unsigned int fpga)
+static void print_fpga_info(unsigned int fpga, bool rgmii2_present)
 {
 	u16 versions;
 	u16 fpga_version;
@@ -168,8 +176,10 @@ static void print_fpga_info(unsigned int fpga)
 	unsigned feature_audio;
 	unsigned feature_sysclock;
 	unsigned feature_ramconfig;
+	unsigned feature_carrier_speed;
 	unsigned feature_carriers;
 	unsigned feature_video_channels;
+
 	int legacy = get_fpga_state(0) & FPGA_STATE_PLATFORM;
 
 	FPGA_GET_REG(0, versions, &versions);
@@ -182,6 +192,7 @@ static void print_fpga_info(unsigned int fpga)
 	feature_audio = (fpga_features & 0x0600) >> 9;
 	feature_sysclock = (fpga_features & 0x0180) >> 7;
 	feature_ramconfig = (fpga_features & 0x0060) >> 5;
+	feature_carrier_speed = fpga_features & (1<<4);
 	feature_carriers = (fpga_features & 0x000c) >> 2;
 	feature_video_channels = fpga_features & 0x0003;
 
@@ -237,11 +248,21 @@ static void print_fpga_info(unsigned int fpga)
 			printf(" HW-Ver 2.10,");
 			break;
 
+		case HWVER_220:
+			printf(" HW-Ver 2.20,");
+			break;
+
+		case HWVER_230:
+			printf(" HW-Ver 2.30,");
+			break;
+
 		default:
 			printf(" HW-Ver %d(not supported),",
 			       hardware_version);
 			break;
 		}
+		if (rgmii2_present)
+			printf(" RGMII2,");
 	}
 
 	if (unit_type == UNITTYPE_VIDEO_USER) {
@@ -334,7 +355,8 @@ static void print_fpga_info(unsigned int fpga)
 		break;
 	}
 
-	printf(", %d carrier(s)", feature_carriers);
+	printf(", %d carrier(s) %s", feature_carriers,
+	       feature_carrier_speed ? "2.5Gbit/s" : "1Gbit/s");
 
 	printf(", %d video channel(s)\n", feature_video_channels);
 }
@@ -343,10 +365,19 @@ int last_stage_init(void)
 {
 	int slaves;
 	unsigned int k;
+	unsigned int mux_ch;
 	unsigned char mclink_controllers[] = { 0x24, 0x25, 0x26 };
 	int legacy = get_fpga_state(0) & FPGA_STATE_PLATFORM;
+	u16 fpga_features;
+	int feature_carrier_speed = fpga_features & (1<<4);
+	bool ch0_rgmii2_present = false;
 
-	print_fpga_info(0);
+	FPGA_GET_REG(0, fpga_features, &fpga_features);
+
+	if (!legacy)
+		ch0_rgmii2_present = !pca9698_get_value(0x20, 30);
+
+	print_fpga_info(0, ch0_rgmii2_present);
 	osd_probe(0);
 
 	/* wait for FPGA done */
@@ -366,13 +397,14 @@ int last_stage_init(void)
 		}
 	}
 
-	if (!legacy) {
+	if (!legacy && (feature_carrier_speed == CARRIER_SPEED_1G)) {
 		miiphy_register(bb_miiphy_buses[0].name, bb_miiphy_read,
 				bb_miiphy_write);
-		if (!verify_88e1518(bb_miiphy_buses[0].name, 0)) {
-			printf("Fixup 88e1518 erratum on %s\n",
-			       bb_miiphy_buses[0].name);
-			setup_88e1518(bb_miiphy_buses[0].name, 0);
+		for (mux_ch = 0; mux_ch < MAX_MUX_CHANNELS; ++mux_ch) {
+			if ((mux_ch == 1) && !ch0_rgmii2_present)
+				continue;
+
+			setup_88e1518(bb_miiphy_buses[0].name, mux_ch);
 		}
 	}
 
@@ -389,13 +421,14 @@ int last_stage_init(void)
 	mclink_fpgacount = slaves;
 
 	for (k = 1; k <= slaves; ++k) {
-		print_fpga_info(k);
+		FPGA_GET_REG(k, fpga_features, &fpga_features);
+		feature_carrier_speed = fpga_features & (1<<4);
+
+		print_fpga_info(k, false);
 		osd_probe(k);
-		miiphy_register(bb_miiphy_buses[k].name,
-				bb_miiphy_read, bb_miiphy_write);
-		if (!verify_88e1518(bb_miiphy_buses[k].name, 0)) {
-			printf("Fixup 88e1518 erratum on %s\n",
-			       bb_miiphy_buses[k].name);
+		if (feature_carrier_speed == CARRIER_SPEED_1G) {
+			miiphy_register(bb_miiphy_buses[k].name,
+					bb_miiphy_read, bb_miiphy_write);
 			setup_88e1518(bb_miiphy_buses[k].name, 0);
 		}
 	}
@@ -562,7 +595,7 @@ static int mii_delay(struct bb_miiphy_bus *bus)
 
 struct bb_miiphy_bus bb_miiphy_buses[] = {
 	{
-		.name = "trans1",
+		.name = "board0",
 		.init = mii_dummy_init,
 		.mdio_active = mii_mdio_active,
 		.mdio_tristate = mii_mdio_tristate,
@@ -573,7 +606,7 @@ struct bb_miiphy_bus bb_miiphy_buses[] = {
 		.priv = &fpga_mii[0],
 	},
 	{
-		.name = "trans2",
+		.name = "board1",
 		.init = mii_dummy_init,
 		.mdio_active = mii_mdio_active,
 		.mdio_tristate = mii_mdio_tristate,
@@ -584,7 +617,7 @@ struct bb_miiphy_bus bb_miiphy_buses[] = {
 		.priv = &fpga_mii[1],
 	},
 	{
-		.name = "trans3",
+		.name = "board2",
 		.init = mii_dummy_init,
 		.mdio_active = mii_mdio_active,
 		.mdio_tristate = mii_mdio_tristate,
@@ -595,7 +628,7 @@ struct bb_miiphy_bus bb_miiphy_buses[] = {
 		.priv = &fpga_mii[2],
 	},
 	{
-		.name = "trans4",
+		.name = "board3",
 		.init = mii_dummy_init,
 		.mdio_active = mii_mdio_active,
 		.mdio_tristate = mii_mdio_tristate,
@@ -610,56 +643,189 @@ struct bb_miiphy_bus bb_miiphy_buses[] = {
 int bb_miiphy_buses_num = sizeof(bb_miiphy_buses) /
 			  sizeof(bb_miiphy_buses[0]);
 
-/*
- * Workaround for erratum mentioned in 88E1518 release notes
- */
+enum {
+	MIICMD_SET,
+	MIICMD_MODIFY,
+	MIICMD_VERIFY_VALUE,
+	MIICMD_WAIT_FOR_VALUE,
+};
 
-static int verify_88e1518(const char *bus, unsigned char addr)
-{
-	u16 phy_id1, phy_id2;
-
-	if (miiphy_read(bus, addr, 2, &phy_id1) ||
-	    miiphy_read(bus, addr, 3, &phy_id2)) {
-		printf("Error reading from the PHY addr=%02x\n", addr);
-		return -EIO;
-	}
-
-	if ((phy_id1 != 0x0141) || ((phy_id2 & 0xfff0) != 0x0dd0))
-		return -EINVAL;
-
-	return 0;
-}
-
-struct regfix_88e1518 {
+struct mii_setupcmd {
+	u8 token;
 	u8 reg;
 	u16 data;
-} regfix_88e1518[] = {
-	{ 22, 0x00ff },
-	{ 17, 0x214b },
-	{ 16, 0x2144 },
-	{ 17, 0x0c28 },
-	{ 16, 0x2146 },
-	{ 17, 0xb233 },
-	{ 16, 0x214d },
-	{ 17, 0xcc0c },
-	{ 16, 0x2159 },
-	{ 22, 0x00fb },
-	{  7, 0xc00d },
-	{ 22, 0x0000 },
+	u16 mask;
+	u32 timeout;
 };
+
+/*
+ * verify we are talking to a 88e1518
+ */
+struct mii_setupcmd verify_88e1518[] = {
+	{ MIICMD_SET, 22, 0x0000 },
+	{ MIICMD_VERIFY_VALUE, 2, 0x0141, 0xffff },
+	{ MIICMD_VERIFY_VALUE, 3, 0x0dd0, 0xfff0 },
+};
+
+/*
+ * workaround for erratum mentioned in 88E1518 release notes
+ */
+struct mii_setupcmd fixup_88e1518[] = {
+	{ MIICMD_SET, 22, 0x00ff },
+	{ MIICMD_SET, 17, 0x214b },
+	{ MIICMD_SET, 16, 0x2144 },
+	{ MIICMD_SET, 17, 0x0c28 },
+	{ MIICMD_SET, 16, 0x2146 },
+	{ MIICMD_SET, 17, 0xb233 },
+	{ MIICMD_SET, 16, 0x214d },
+	{ MIICMD_SET, 17, 0xcc0c },
+	{ MIICMD_SET, 16, 0x2159 },
+	{ MIICMD_SET, 22, 0x00fb },
+	{ MIICMD_SET,  7, 0xc00d },
+	{ MIICMD_SET, 22, 0x0000 },
+};
+
+/*
+ * default initialization:
+ * - set RGMII receive timing to "receive clock transition when data stable"
+ * - set RGMII transmit timing to "transmit clock internally delayed"
+ * - set RGMII output impedance target to 78,8 Ohm
+ * - run output impedance calibration
+ * - set autonegotiation advertise to 1000FD only
+ */
+struct mii_setupcmd default_88e1518[] = {
+	{ MIICMD_SET, 22, 0x0002 },
+	{ MIICMD_MODIFY, 21, 0x0030, 0x0030 },
+	{ MIICMD_MODIFY, 25, 0x0000, 0x0003 },
+	{ MIICMD_MODIFY, 24, 0x8000, 0x8000 },
+	{ MIICMD_WAIT_FOR_VALUE, 24, 0x4000, 0x4000, 2000 },
+	{ MIICMD_SET, 22, 0x0000 },
+	{ MIICMD_MODIFY, 4, 0x0000, 0x01e0 },
+	{ MIICMD_MODIFY, 9, 0x0200, 0x0300 },
+};
+
+/*
+ * turn off CLK125 for PHY daughterboard
+ */
+struct mii_setupcmd ch1fix_88e1518[] = {
+	{ MIICMD_SET, 22, 0x0002 },
+	{ MIICMD_MODIFY, 16, 0x0006, 0x0006 },
+	{ MIICMD_SET, 22, 0x0000 },
+};
+
+/*
+ * perform copper software reset
+ */
+struct mii_setupcmd swreset_88e1518[] = {
+	{ MIICMD_SET, 22, 0x0000 },
+	{ MIICMD_MODIFY, 0, 0x8000, 0x8000 },
+	{ MIICMD_WAIT_FOR_VALUE, 0, 0x0000, 0x8000, 2000 },
+};
+
+static int process_setupcmd(const char *bus, unsigned char addr,
+			    struct mii_setupcmd *setupcmd)
+{
+	int res;
+	u8 reg = setupcmd->reg;
+	u16 data = setupcmd->data;
+	u16 mask = setupcmd->mask;
+	u32 timeout = setupcmd->timeout;
+	u16 orig_data;
+	unsigned long start;
+
+	debug("mii %s:%u reg %2u ", bus, addr, reg);
+
+	switch (setupcmd->token) {
+	case MIICMD_MODIFY:
+		res = miiphy_read(bus, addr, reg, &orig_data);
+		if (res)
+			break;
+		debug("is %04x. (value %04x mask %04x) ", orig_data, data,
+		      mask);
+		data = (orig_data & ~mask) | (data & mask);
+	case MIICMD_SET:
+		debug("=> %04x\n", data);
+		res = miiphy_write(bus, addr, reg, data);
+		break;
+	case MIICMD_VERIFY_VALUE:
+		res = miiphy_read(bus, addr, reg, &orig_data);
+		if (res)
+			break;
+		if ((orig_data & mask) != (data & mask))
+			res = -1;
+		debug("(value %04x mask %04x) == %04x? %s\n", data, mask,
+		      orig_data, res ? "FAIL" : "PASS");
+		break;
+	case MIICMD_WAIT_FOR_VALUE:
+		res = -1;
+		start = get_timer(0);
+		while ((res != 0) && (get_timer(start) < timeout)) {
+			res = miiphy_read(bus, addr, reg, &orig_data);
+			if (res)
+				continue;
+			if ((orig_data & mask) != (data & mask))
+				res = -1;
+		}
+		debug("(value %04x mask %04x) == %04x? %s after %lu ms\n", data,
+		      mask, orig_data, res ? "FAIL" : "PASS",
+		      get_timer(start));
+		break;
+	default:
+		res = -1;
+		break;
+	}
+
+	return res;
+}
+
+static int process_setup(const char *bus, unsigned char addr,
+			    struct mii_setupcmd *setupcmd, unsigned int count)
+{
+	int res = 0;
+	unsigned int k;
+
+	for (k = 0; k < count; ++k) {
+		res = process_setupcmd(bus, addr, &setupcmd[k]);
+		if (res) {
+			printf("mii cmd %u on bus %s addr %u failed, aborting setup",
+			       setupcmd[k].token, bus, addr);
+			break;
+		}
+	}
+
+	return res;
+}
 
 static int setup_88e1518(const char *bus, unsigned char addr)
 {
-	unsigned int k;
+	int res;
 
-	for (k = 0; k < ARRAY_SIZE(regfix_88e1518); ++k) {
-		if (miiphy_write(bus, addr,
-				 regfix_88e1518[k].reg,
-				 regfix_88e1518[k].data)) {
-			printf("Error writing to the PHY addr=%02x\n", addr);
-			return -1;
-		}
+	res = process_setup(bus, addr,
+			    verify_88e1518, ARRAY_SIZE(verify_88e1518));
+	if (res)
+		return res;
+
+	res = process_setup(bus, addr,
+			    fixup_88e1518, ARRAY_SIZE(fixup_88e1518));
+	if (res)
+		return res;
+
+	res = process_setup(bus, addr,
+			    default_88e1518, ARRAY_SIZE(default_88e1518));
+	if (res)
+		return res;
+
+	if (addr) {
+		res = process_setup(bus, addr,
+				    ch1fix_88e1518, ARRAY_SIZE(ch1fix_88e1518));
+		if (res)
+			return res;
 	}
+
+	res = process_setup(bus, addr,
+			    swreset_88e1518, ARRAY_SIZE(swreset_88e1518));
+	if (res)
+		return res;
 
 	return 0;
 }

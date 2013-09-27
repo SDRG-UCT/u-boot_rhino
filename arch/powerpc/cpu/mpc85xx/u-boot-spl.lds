@@ -44,6 +44,16 @@ SECTIONS
 	}
 	_edata  =  .;
 
+	. = ALIGN(4);
+	.u_boot_list : {
+		KEEP(*(SORT(.u_boot_list*)));
+	}
+
+	. = .;
+	__start___ex_table = .;
+	__ex_table : { *(__ex_table) }
+	__stop___ex_table = .;
+
 	. = ALIGN(8);
 	__init_begin = .;
 	__init_end = .;

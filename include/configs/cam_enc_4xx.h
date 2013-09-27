@@ -49,7 +49,6 @@
 #define CONFIG_EMAC_MDIO_PHY_NUM	0
 #define	CONFIG_SYS_EMAC_TI_CLKDIV	0xa9	/* 1MHz */
 #define CONFIG_MII
-#define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
 #define CONFIG_BOOTP_DNS2
 #define CONFIG_BOOTP_SEND_HOSTNAME
@@ -217,6 +216,8 @@
 #define CONFIG_SPL_STACK		(0x00010000 + 0x7f00)
 
 #define CONFIG_SPL_TEXT_BASE		0x00000020 /*CONFIG_SYS_SRAM_START*/
+/* Provide at least 16MB spacing between us and the Linux Kernel image */
+#define CONFIG_SPL_PAD_TO		12320
 #define CONFIG_SPL_MAX_FOOTPRINT	12288
 
 #ifndef CONFIG_SPL_BUILD

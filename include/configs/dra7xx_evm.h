@@ -12,20 +12,34 @@
 #ifndef __CONFIG_DRA7XX_EVM_H
 #define __CONFIG_DRA7XX_EVM_H
 
-/* High Level Configuration Options */
-#define CONFIG_DRA7XX		/* in a TI DRA7XX core */
+#define CONFIG_DRA7XX
+
 #define CONFIG_ENV_IS_NOWHERE		/* For now. */
 
-#include <configs/omap5_common.h>
-
-#define CONFIG_SYS_PROMPT		"DRA752 EVM # "
-
+#define CONSOLEDEV			"ttyO0"
 #define CONFIG_CONS_INDEX		1
 #define CONFIG_SYS_NS16550_COM1		UART1_BASE
 #define CONFIG_BAUDRATE			115200
 
 #define CONFIG_SYS_OMAP_ABE_SYSCK
 
-#define CONSOLEDEV		"ttyO0"
+#include <configs/omap5_common.h>
+
+/* CPSW Ethernet */
+#define CONFIG_CMD_NET			/* 'bootp' and 'tftp' */
+#define CONFIG_CMD_DHCP
+#define CONFIG_BOOTP_DNS		/* Configurable parts of CMD_DHCP */
+#define CONFIG_BOOTP_DNS2
+#define CONFIG_BOOTP_SEND_HOSTNAME
+#define CONFIG_BOOTP_GATEWAY
+#define CONFIG_BOOTP_SUBNETMASK
+#define CONFIG_NET_RETRY_COUNT		10
+#define CONFIG_CMD_PING
+#define CONFIG_CMD_MII
+#define CONFIG_DRIVER_TI_CPSW		/* Driver for IP block */
+#define CONFIG_MII			/* Required in net/eth.c */
+#define CONFIG_PHY_GIGE			/* per-board part of CPSW */
+#define CONFIG_PHYLIB
+#define CONFIG_PHY_ADDR			2
 
 #endif /* __CONFIG_DRA7XX_EVM_H */

@@ -7,7 +7,7 @@
  *   Copyright 2010-2011 Freescale Semiconductor, Inc.
  *   author Andy Fleming
  *
- * Some code get from linux kenrel
+ * Some code copied from linux kernel
  * Copyright (c) 2006 Herbert Valerio Riedel <hvr@gnu.org>
  */
 #include <miiphy.h>
@@ -62,7 +62,7 @@ static struct phy_driver lan8710_driver = {
 	.name = "SMSC LAN8710/LAN8720",
 	.uid = 0x0007c0f0,
 	.mask = 0xffff0,
-	.features = PHY_GBIT_FEATURES,
+	.features = PHY_BASIC_FEATURES,
 	.config = &genphy_config_aneg,
 	.startup = &smsc_startup,
 	.shutdown = &genphy_shutdown,

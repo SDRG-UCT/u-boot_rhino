@@ -35,7 +35,7 @@ Makefile have been tested to some extent and can be considered
 "working". In fact, many of them are used in production systems.
 
 In case of problems see the CHANGELOG and CREDITS files to find out
-who contributed the specific port. The MAINTAINERS file lists board
+who contributed the specific port. The boards.cfg file lists board
 maintainers.
 
 Note: There is no CHANGELOG file in the actual U-Boot source tree;
@@ -153,9 +153,6 @@ Directory Hierarchy:
   /blackfin		Files generic to Analog Devices Blackfin architecture
     /cpu		CPU specific files
     /lib		Architecture specific library files
-  /x86			Files generic to x86 architecture
-    /cpu		CPU specific files
-    /lib		Architecture specific library files
   /m68k			Files generic to m68k architecture
     /cpu		CPU specific files
       /mcf52x2		Files specific to Freescale ColdFire MCF52x2 CPUs
@@ -177,6 +174,9 @@ Directory Hierarchy:
       /n1213		Files specific to Andes Technology N1213 CPUs
     /lib		Architecture specific library files
   /nios2		Files generic to Altera NIOS2 architecture
+    /cpu		CPU specific files
+    /lib		Architecture specific library files
+  /openrisc		Files generic to OpenRISC architecture
     /cpu		CPU specific files
     /lib		Architecture specific library files
   /powerpc		Files generic to PowerPC architecture
@@ -201,12 +201,16 @@ Directory Hierarchy:
       /leon2		Files specific to Gaisler LEON2 SPARC CPU
       /leon3		Files specific to Gaisler LEON3 SPARC CPU
     /lib		Architecture specific library files
+  /x86			Files generic to x86 architecture
+    /cpu		CPU specific files
+    /lib		Architecture specific library files
 /api			Machine/arch independent API for external apps
 /board			Board dependent files
 /common			Misc architecture independent functions
 /disk			Code for disk drive partition handling
 /doc			Documentation (don't expect too much)
 /drivers		Commonly used device drivers
+/dts			Contains Makefile for building internal U-Boot fdt.
 /examples		Example code for standalone applications, etc.
 /fs			Filesystem code (cramfs, ext2, jffs2, etc.)
 /include		Header Files
@@ -216,7 +220,7 @@ Directory Hierarchy:
   /lzo			Library files to support LZO decompression
 /net			Networking code
 /post			Power On Self Test
-/rtc			Real Time Clock drivers
+/spl			Secondary Program Loader framework
 /tools			Tools to build S-Record or U-Boot images, etc.
 
 Software Configuration:
@@ -1680,6 +1684,10 @@ CBFS (Coreboot Filesystem) support
 		to compress the specified memory at its best effort.
 
 - Compression support:
+		CONFIG_GZIP
+
+		Enabled by default to support gzip compressed images.
+
 		CONFIG_BZIP2
 
 		If this option is set, support for bzip2 compressed
@@ -1712,6 +1720,11 @@ CBFS (Coreboot Filesystem) support
 		Use the lzmainfo tool to determinate the lc and lp values and
 		then calculate the amount of needed dynamic memory (ensuring
 		the appropriate CONFIG_SYS_MALLOC_LEN value).
+
+		CONFIG_LZO
+
+		If this option is set, support for LZO compressed images
+		is included.
 
 - MII/PHY support:
 		CONFIG_PHY_ADDR
@@ -2641,6 +2654,21 @@ CBFS (Coreboot Filesystem) support
 		Note: There is also a sha1sum command, which should perhaps
 		be deprecated in favour of 'hash sha1'.
 
+- Freescale i.MX specific commands:
+		CONFIG_CMD_HDMIDETECT
+		This enables 'hdmidet' command which returns true if an
+		HDMI monitor is detected.  This command is i.MX 6 specific.
+
+		CONFIG_CMD_BMODE
+		This enables the 'bmode' (bootmode) command for forcing
+		a boot from specific media.
+
+		This is useful for forcing the ROM's usb downloader to
+		activate upon a watchdog reset which is nice when iterating
+		on U-Boot.  Using the reset button or running bmode normal
+		will set it back to normal.  This command currently
+		supports i.MX53 and i.MX6.
+
 - Signing support:
 		CONFIG_RSA
 
@@ -3075,6 +3103,14 @@ FIT uImage format:
 		Support for NAND boot using simple NAND drivers that
 		expose the cmd_ctrl() interface.
 
+		CONFIG_SPL_MPC8XXX_INIT_DDR_SUPPORT
+		Set for the SPL on PPC mpc8xxx targets, support for
+		arch/powerpc/cpu/mpc8xxx/ddr/libddr.o in SPL binary.
+
+		CONFIG_SPL_COMMON_INIT_DDR
+		Set for common ddr init with serial presence detect in
+		SPL binary.
+
 		CONFIG_SYS_NAND_5_ADDR_CYCLE, CONFIG_SYS_NAND_PAGE_COUNT,
 		CONFIG_SYS_NAND_PAGE_SIZE, CONFIG_SYS_NAND_OOBSIZE,
 		CONFIG_SYS_NAND_BLOCK_SIZE, CONFIG_SYS_NAND_BAD_BLOCK_POS,
@@ -3143,6 +3179,17 @@ FIT uImage format:
 		code to SPL. So this is normally disabled in SPL. Use this
 		option to re-enable it. This will affect the output of the
 		bootm command when booting a FIT image.
+
+- TPL framework
+		CONFIG_TPL
+		Enable building of TPL globally.
+
+		CONFIG_TPL_PAD_TO
+		Image offset to which the TPL should be padded before appending
+		the TPL payload. By default, this is defined as
+                CONFIG_SPL_MAX_SIZE, or 0 if CONFIG_SPL_MAX_SIZE is undefined.
+                CONFIG_SPL_PAD_TO must be either 0, meaning to append the SPL
+                payload without any padding, or >= CONFIG_SPL_MAX_SIZE.
 
 Modem Support:
 --------------
@@ -3317,7 +3364,7 @@ Configuration Settings:
 		the Linux kernel; all data that must be processed by
 		the Linux kernel (bd_info, boot arguments, FDT blob if
 		used) must be put below this limit, unless "bootm_low"
-		enviroment variable is defined and non-zero. In such case
+		environment variable is defined and non-zero. In such case
 		all data for the Linux kernel must be between "bootm_low"
 		and "bootm_low" + CONFIG_SYS_BOOTMAPSZ.	 The environment
 		variable "bootm_mapsize" will override the value of
@@ -3430,7 +3477,7 @@ Configuration Settings:
 
 - CONFIG_ENV_FLAGS_LIST_DEFAULT
 - CONFIG_ENV_FLAGS_LIST_STATIC
-	Enable validation of the values given to enviroment variables when
+	Enable validation of the values given to environment variables when
 	calling env set.  Variables can be restricted to only decimal,
 	hexadecimal, or boolean.  If CONFIG_CMD_NET is also defined,
 	the variables can also be restricted to IP address or MAC address.
@@ -4181,6 +4228,11 @@ Low Level (hardware related) configuration options:
 		that is executed before the actual U-Boot. E.g. when
 		compiling a NAND SPL.
 
+- CONFIG_TPL_BUILD
+		Modifies the behaviour of start.S  when compiling a loader
+		that is executed after the SPL and before the actual U-Boot.
+		It is loaded by the SPL.
+
 - CONFIG_SYS_MPC85XX_NO_RESETVEC
 		Only for 85xx systems. If this variable is specified, the section
 		.resetvec is not kept and the section .bootpg is placed in the
@@ -4626,6 +4678,12 @@ List of environment variables (most likely not complete):
 		  themselves.
 
   npe_ucode	- set load address for the NPE microcode
+
+  silent_linux  - If set then linux will be told to boot silently, by
+		  changing the console to be empty. If "yes" it will be
+		  made silent. If "no" it will not be made silent. If
+		  unset, then it will be made silent if the U-Boot console
+		  is silent.
 
   tftpsrcport	- If this is set, the value is used for TFTP's
 		  UDP source port.
@@ -5779,8 +5837,8 @@ it:
 
 * For major contributions, your entry to the CREDITS file
 
-* When you add support for a new board, don't forget to add this
-  board to the MAINTAINERS file, too.
+* When you add support for a new board, don't forget to add a
+  maintainer e-mail address to the boards.cfg file, too.
 
 * If your patch adds new configuration options, don't forget to
   document these in the README file.
