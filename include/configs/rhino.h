@@ -7,19 +7,7 @@
  *
  * Copyright (C) 2010 Texas Instruments Incorporated
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -33,6 +21,7 @@
 #define CONFIG_OMAP		1	/* in a TI OMAP core */
 #define CONFIG_OMAP34XX		1	/* which is a 34XX */
 #define CONFIG_RHINO		1	/* working with UCT RHINO */
+#define CONFIG_OMAP_COMMON
 
 #define CONFIG_EMIF4	/* The chip has EMIF4 controller */
 
@@ -107,9 +96,9 @@
  * Enable CONFIG_MUSB_HOST for Host functionalities MSC, keyboard
  * Enable CONFIG_MUSB_GADGET for Device functionalities.
  */
-#undef CONFIG_USB_MUSB_AM35X
-#undef CONFIG_MUSB_HOST
-#undef CONFIG_MUSB_PIO_ONLY
+#define CONFIG_USB_MUSB_AM35X
+#define CONFIG_MUSB_HOST
+#define CONFIG_MUSB_PIO_ONLY
 
 #ifdef CONFIG_USB_MUSB_AM35X
 
@@ -179,9 +168,9 @@
 /*
  * Board NAND Info.
  */
-#define CONFIG_SYS_NAND_ADDR		0x00000000	/* physical address */
+#define CONFIG_SYS_NAND_ADDR		NAND_BASE	/* physical address */
 							/* to access nand */
-#define CONFIG_SYS_NAND_BASE		0x00000000	/* physical address */
+#define CONFIG_SYS_NAND_BASE		NAND_BASE	/* physical address */
 							/* to access */
 							/* nand at CS0 */
 
@@ -231,8 +220,8 @@
 	"loadmlo=tftp ${loadaddr} MLO\0" \
 	"loaduboot=tftp ${loadaddr} u-boot.img\0" \
 	"loaduimage=tftp ${loadaddr} uImage\0" \
-        "savemlo=nandecc hw;nand erase 0x0 0x50000;" \
-                "nand write ${loadaddr} 0x0 0x50000\0" \
+	"savemlo=nandecc hw;nand erase 0x0 0x50000;" \
+		"nand write ${loadaddr} 0x0 0x50000\0" \
 	"saveuboot=nandecc hw;nand erase 0x80000 0x1C0000;" \
 		"nand write ${loadaddr} 0x80000 0x1C0000\0" \
 	"saveuimage=nandecc hw;nand erase 0x280000 0x500000;" \
