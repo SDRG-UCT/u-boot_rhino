@@ -142,22 +142,21 @@
 #define CONFIG_CMD_JFFS2	/* JFFS2 Support		*/
 
 #define CONFIG_CMD_I2C		/* I2C serial bus support	*/
+#define CONFIG_CMD_SPI		/* SPI serial bus support	*/
 #define CONFIG_CMD_MMC		/* MMC support			*/
 #define CONFIG_CMD_NAND		/* NAND support			*/
+#define CONFIG_CMD_GPIO
+
+#define CONFIG_CMD_NET
 #define CONFIG_CMD_DHCP
+#define CONFIG_CMD_DNS
+#undef CONFIG_CMD_NFS
 #define CONFIG_CMD_PING
 
 #undef CONFIG_CMD_FLASH		/* flinfo, erase, protect	*/
 #define CONFIG_CMD_FPGA		/* FPGA configuration Support	*/
 #undef CONFIG_CMD_IMI		/* iminfo			*/
 #undef CONFIG_CMD_IMLS		/* List all found images	*/
-
-#define CONFIG_CMD_NET
-#undef CONFIG_CMD_NFS
-
-/* Extra Commands Added */
-#define CONFIG_CMD_GPIO
-#define CONFIG_CMD_SPI
 
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_HARD_I2C			1
@@ -191,6 +190,8 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"autoload=no\0" \
 	"loadaddr=0x82000000\0" \
+	"nfshost=rhino-server.sdrg.uct.ac.za\0" \
+	"serverip=10.0.0.1\0" \
 	"console=ttyO0,115200n8\0" \
 	"mmcdev=0\0" \
 	"mmcargs=setenv bootargs console=${console} " \
@@ -229,7 +230,7 @@
 	"updatemlo=run clearmem; run loadmlo; run savemlo\0" \
 	"updateuboot=run clearmem; run loaduboot; run saveuboot\0" \
 	"updateuimage=run clearmem; run loaduimage; run saveuimage\0" \
-
+	"getserverip=dns ${nfshost} serverip\0" \
 
 #define CONFIG_BOOTCOMMAND \
 	"dhcp; mmc dev ${mmcdev}; if mmc rescan; then " \
@@ -242,8 +243,11 @@
 			"fi; " \
 		"fi; " \
 	"else " \
-		"if ping ${serverip}; then " \
-			"run nfsboot; " \
+		"if dns ${nfshost} serverip; then " \
+			"if ping ${serverip}; then " \
+				"run nfsboot; " \
+			"else run nandboot; " \
+			"fi; " \
 		"else run nandboot; " \
 		"fi; " \
 	"fi"
