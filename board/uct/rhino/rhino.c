@@ -158,22 +158,43 @@ int fpga_bwr_fn(const void *buf, size_t bsize, int flush, int cookie)
 {
 	PRINTF("%s:%d: FPGA BLOCK WRITE cookie=%d\n", __func__, __LINE__, cookie);
 
-	size_t bytecount = 0;
-	unsigned char *data = (unsigned char *) buf;
-	unsigned char val[2];
+        size_t blocksize = 16184;
 
-	while (bytecount < bsize)
-	 {
-		val[0] = data [bytecount ++];
-		val[1] = data [bytecount ++];
-		//Write to SPI	
-		spi_xfer(spi, 16, val, NULL, 0);
+        unsigned int *data_ptr = (unsigned int*) buf;
 
+	size_t wordcount = 0;
+	size_t wsize = 0;
+	size_t num_words = 0;
+
+	//Prevent truncation
+	if(bsize % 4 == 0)
+	{
+		wsize = bsize/4;
+	}
+	else
+	{
+		wsize = (size_t)((bsize/4) + 1);
+	}
+
+	while (wordcount < wsize)
+	{
+		num_words = wordcount + blocksize;
+
+		//Check for incomplete block
+		if(num_words > wsize)
+		{
+			num_words = wsize;
+		}
+
+		while (wordcount < num_words)
+		{
+			//Write to SPI	
+			spi_xfer(spi, 32, data_ptr++, NULL, 0);
+			wordcount++;
+		}
 #ifdef CONFIG_SYS_FPGA_PROG_FEEDBACK
-		if (bytecount % (bsize / 40) == 0)
-                putc ('.');             /* let them know we are alive */
+		putc ('.');             /* let them know we are alive */
 #endif
-
     	}
 
 	return 1;
