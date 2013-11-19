@@ -2,7 +2,7 @@
  * (C) Copyright 2000-2009
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __COMMON_H_
@@ -596,6 +596,12 @@ void ddr_enable_ecc(unsigned int dram_size);
 #endif
 #endif
 
+/*
+ * Return the current value of a monotonically increasing microsecond timer.
+ * Granularity may be larger than 1us if hardware does not support this.
+ */
+ulong timer_get_us(void);
+
 /* $(CPU)/cpu.c */
 static inline int cpumask_next(int cpu, unsigned int mask)
 {
@@ -627,6 +633,8 @@ void ft_pci_setup(void *blob, bd_t *bd);
 #endif
 #endif
 
+void smp_set_core_boot_addr(unsigned long addr, int corenr);
+void smp_kick_all_cpus(void);
 
 /* $(CPU)/serial.c */
 int	serial_init   (void);

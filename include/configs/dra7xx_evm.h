@@ -6,7 +6,7 @@
  * Configuration settings for the TI DRA7XX board.
  * See omap5_common.h for omap5 common settings.
  *
- * SPDX-License-Identifier:	GPL-2.0+ 
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_DRA7XX_EVM_H
@@ -47,5 +47,24 @@
 #define CONFIG_PHY_GIGE			/* per-board part of CPSW */
 #define CONFIG_PHYLIB
 #define CONFIG_PHY_ADDR			2
+
+/* SPI */
+#undef	CONFIG_OMAP3_SPI
+#define CONFIG_TI_QSPI
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_SPANSION
+#define CONFIG_CMD_SF
+#define CONFIG_CMD_SPI
+#define CONFIG_TI_SPI_MMAP
+#define CONFIG_SF_DEFAULT_SPEED                48000000
+#define CONFIG_DEFAULT_SPI_MODE                SPI_MODE_3
+
+/* SPI SPL */
+#define CONFIG_SPL_SPI_SUPPORT
+#define CONFIG_SPL_SPI_LOAD
+#define CONFIG_SPL_SPI_FLASH_SUPPORT
+#define CONFIG_SPL_SPI_BUS             0
+#define CONFIG_SPL_SPI_CS              0
+#define CONFIG_SYS_SPI_U_BOOT_OFFS     0x20000
 
 #endif /* __CONFIG_DRA7XX_EVM_H */

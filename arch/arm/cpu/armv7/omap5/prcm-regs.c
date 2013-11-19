@@ -526,8 +526,6 @@ struct prcm_regs const omap5_es2_prcm = {
 	.cm1_abe_timer8_clkctrl = 0x4a004580,
 	.cm1_abe_wdt3_clkctrl = 0x4a004588,
 
-
-
 	/* cm2.ckgen */
 	.cm_clksel_mpu_m3_iss_root = 0x4a008100,
 	.cm_clksel_usb_60mhz = 0x4a008104,
@@ -921,6 +919,7 @@ struct prcm_regs const dra7xx_prcm = {
 	.cm_l4per_gpio8_clkctrl			= 0x4a009818,
 	.cm_l4per_mmcsd3_clkctrl		= 0x4a009820,
 	.cm_l4per_mmcsd4_clkctrl		= 0x4a009828,
+	.cm_l4per_qspi_clkctrl			= 0x4a009838,
 	.cm_l4per_uart1_clkctrl			= 0x4a009840,
 	.cm_l4per_uart2_clkctrl			= 0x4a009848,
 	.cm_l4per_uart3_clkctrl			= 0x4a009850,

@@ -8,7 +8,7 @@
 VERSION = 2013
 PATCHLEVEL = 10
 SUBLEVEL =
-EXTRAVERSION = -rc4
+EXTRAVERSION =
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -284,6 +284,7 @@ LIBS-y += drivers/pci/libpci.o
 LIBS-y += drivers/pcmcia/libpcmcia.o
 LIBS-y += drivers/power/libpower.o \
 	drivers/power/fuel_gauge/libfuel_gauge.o \
+	drivers/power/mfd/libmfd.o \
 	drivers/power/pmic/libpmic.o \
 	drivers/power/battery/libbattery.o
 LIBS-y += drivers/spi/libspi.o
