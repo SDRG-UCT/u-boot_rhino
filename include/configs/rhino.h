@@ -194,6 +194,7 @@
 	"serverip=10.0.0.1\0" \
 	"console=ttyO0,115200n8\0" \
 	"mmcdev=0\0" \
+    "nandbootdefault=false\0" \
 	"mmcargs=setenv bootargs console=${console} " \
 		"root=/dev/mmcblk0p2 rw rootwait\0" \
 	"nandargs=setenv bootargs console=${console} " \
@@ -221,35 +222,43 @@
 	"loadmlo=tftp ${loadaddr} MLO\0" \
 	"loaduboot=tftp ${loadaddr} u-boot.img\0" \
 	"loaduimage=tftp ${loadaddr} uImage\0" \
-	"savemlo=nandecc hw;nand erase 0x0 0x50000;" \
+	"loadfs=tftp ${loadaddr} rhinofs.jffs2\0" \
+    "savemlo=nandecc hw;nand erase 0x0 0x50000;" \
 		"nand write ${loadaddr} 0x0 0x50000\0" \
 	"saveuboot=nandecc hw;nand erase 0x80000 0x1C0000;" \
 		"nand write ${loadaddr} 0x80000 0x1C0000\0" \
 	"saveuimage=nandecc hw;nand erase 0x280000 0x500000;" \
 		"nand write ${loadaddr} 0x280000 0x500000\0" \
+     "savefs=nandecc hw;nand erase 0x780000 0x2000000;" \
+         "nand write ${loadaddr} 0x780000 0x2000000\0" \
 	"updatemlo=run clearmem; run loadmlo; run savemlo\0" \
 	"updateuboot=run clearmem; run loaduboot; run saveuboot\0" \
 	"updateuimage=run clearmem; run loaduimage; run saveuimage\0" \
+    "updatefs=run clearmem; run loadfs; run savefs\0" \
 	"getserverip=dns ${nfshost} serverip\0" \
 
 #define CONFIG_BOOTCOMMAND \
-	"dhcp; mmc dev ${mmcdev}; if mmc rescan; then " \
-		"if run loadbootscript; then " \
-			"run bootscript; " \
-		"else " \
-			"if run loaduimage; then " \
-				"run mmcboot; " \
-			"else run nandboot; " \
-			"fi; " \
-		"fi; " \
-	"else " \
-		"if dns ${nfshost} serverip; then " \
-			"if ping ${serverip}; then " \
-				"run nfsboot; " \
-			"else run nandboot; " \
-			"fi; " \
-		"else run nandboot; " \
-		"fi; " \
+    "if ${nandbootdefault}; then " \
+        "run nandboot; " \
+    "else " \
+	    "dhcp; mmc dev ${mmcdev}; if mmc rescan; then " \
+		    "if run loadbootscript; then " \
+			    "run bootscript; " \
+		    "else " \
+			    "if run loaduimage; then " \
+				    "run mmcboot; " \
+			    "else run nandboot; " \
+			    "fi; " \
+		    "fi; " \
+	    "else " \
+		    "if dns ${nfshost} serverip; then " \
+			    "if ping ${serverip}; then " \
+				    "run nfsboot; " \
+			    "else run nandboot; " \
+			    "fi; " \
+		    "else run nandboot; " \
+		    "fi; " \
+        "fi; " \
 	"fi"
 
 #define CONFIG_AUTO_COMPLETE	1
