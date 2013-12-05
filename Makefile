@@ -5,10 +5,10 @@
 # SPDX-License-Identifier:	GPL-2.0+
 #
 
-VERSION = 2013
-PATCHLEVEL = 10
+VERSION = 2014
+PATCHLEVEL = 01
 SUBLEVEL =
-EXTRAVERSION =
+EXTRAVERSION = -rc1
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -65,10 +65,8 @@ endif
 # the object files are placed in the source directory.
 #
 
-ifdef O
 ifeq ("$(origin O)", "command line")
 BUILD_DIR := $(O)
-endif
 endif
 
 # Call a source code checker (by default, "sparse") as part of the
@@ -138,7 +136,6 @@ unexport CDPATH
 # The "examples" conditionally depend on U-Boot (say, when USE_PRIVATE_LIBGCC
 # is "yes"), so compile examples after U-Boot is compiled.
 SUBDIR_TOOLS = tools
-SUBDIR_EXAMPLES = examples/standalone examples/api
 SUBDIRS = $(SUBDIR_TOOLS)
 
 .PHONY : $(SUBDIRS) $(VERSION_FILE) $(TIMESTAMP_FILE)
@@ -152,8 +149,10 @@ all:
 sinclude $(obj)include/autoconf.mk.dep
 sinclude $(obj)include/autoconf.mk
 
+SUBDIR_EXAMPLES-y := examples/standalone
+SUBDIR_EXAMPLES-$(CONFIG_API) += examples/api
 ifndef CONFIG_SANDBOX
-SUBDIRS += $(SUBDIR_EXAMPLES)
+SUBDIRS += $(SUBDIR_EXAMPLES-y)
 endif
 
 # load ARCH, BOARD, and CPU configuration
@@ -231,124 +230,65 @@ OBJS := $(addprefix $(obj),$(OBJS))
 
 HAVE_VENDOR_COMMON_LIB = $(if $(wildcard board/$(VENDOR)/common/Makefile),y,n)
 
-LIBS-y += lib/libgeneric.o
-LIBS-y += lib/rsa/librsa.o
-LIBS-y += lib/lzma/liblzma.o
-LIBS-y += lib/lzo/liblzo.o
-LIBS-y += lib/zlib/libz.o
-LIBS-$(CONFIG_TIZEN) += lib/tizen/libtizen.o
-LIBS-$(HAVE_VENDOR_COMMON_LIB) += board/$(VENDOR)/common/lib$(VENDOR).o
-LIBS-y += $(CPUDIR)/lib$(CPU).o
+LIBS-y += lib/
+LIBS-$(HAVE_VENDOR_COMMON_LIB) += board/$(VENDOR)/common/
+LIBS-y += $(CPUDIR)/
 ifdef SOC
-LIBS-y += $(CPUDIR)/$(SOC)/lib$(SOC).o
+LIBS-y += $(CPUDIR)/$(SOC)/
 endif
-ifeq ($(CPU),ixp)
-LIBS-y += drivers/net/npe/libnpe.o
-endif
-LIBS-$(CONFIG_OF_EMBED) += dts/libdts.o
-LIBS-y += arch/$(ARCH)/lib/lib$(ARCH).o
-LIBS-y += fs/libfs.o \
-	fs/cbfs/libcbfs.o \
-	fs/cramfs/libcramfs.o \
-	fs/ext4/libext4fs.o \
-	fs/fat/libfat.o \
-	fs/fdos/libfdos.o \
-	fs/jffs2/libjffs2.o \
-	fs/reiserfs/libreiserfs.o \
-	fs/sandbox/libsandboxfs.o \
-	fs/ubifs/libubifs.o \
-	fs/yaffs2/libyaffs2.o \
-	fs/zfs/libzfs.o
-LIBS-y += net/libnet.o
-LIBS-y += disk/libdisk.o
-LIBS-y += drivers/bios_emulator/libatibiosemu.o
-LIBS-y += drivers/block/libblock.o
-LIBS-$(CONFIG_BOOTCOUNT_LIMIT) += drivers/bootcount/libbootcount.o
-LIBS-y += drivers/crypto/libcrypto.o
-LIBS-y += drivers/dma/libdma.o
-LIBS-y += drivers/fpga/libfpga.o
-LIBS-y += drivers/gpio/libgpio.o
-LIBS-y += drivers/hwmon/libhwmon.o
-LIBS-y += drivers/i2c/libi2c.o
-LIBS-y += drivers/input/libinput.o
-LIBS-y += drivers/misc/libmisc.o
-LIBS-y += drivers/mmc/libmmc.o
-LIBS-y += drivers/mtd/libmtd.o
-LIBS-y += drivers/mtd/nand/libnand.o
-LIBS-y += drivers/mtd/onenand/libonenand.o
-LIBS-y += drivers/mtd/ubi/libubi.o
-LIBS-y += drivers/mtd/spi/libspi_flash.o
-LIBS-y += drivers/net/libnet.o
-LIBS-y += drivers/net/phy/libphy.o
-LIBS-y += drivers/pci/libpci.o
-LIBS-y += drivers/pcmcia/libpcmcia.o
-LIBS-y += drivers/power/libpower.o \
-	drivers/power/fuel_gauge/libfuel_gauge.o \
-	drivers/power/mfd/libmfd.o \
-	drivers/power/pmic/libpmic.o \
-	drivers/power/battery/libbattery.o
-LIBS-y += drivers/spi/libspi.o
-LIBS-y += drivers/dfu/libdfu.o
-ifeq ($(CPU),mpc83xx)
-LIBS-y += drivers/qe/libqe.o
-LIBS-y += arch/powerpc/cpu/mpc8xxx/ddr/libddr.o
-LIBS-y += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
-endif
-ifeq ($(CPU),mpc85xx)
-LIBS-y += drivers/qe/libqe.o
-LIBS-y += drivers/net/fm/libfm.o
-LIBS-y += arch/powerpc/cpu/mpc8xxx/ddr/libddr.o
-LIBS-y += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
-endif
-ifeq ($(CPU),mpc86xx)
-LIBS-y += arch/powerpc/cpu/mpc8xxx/ddr/libddr.o
-LIBS-y += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
-endif
-LIBS-y += drivers/rtc/librtc.o
-LIBS-y += drivers/serial/libserial.o
-LIBS-y += drivers/sound/libsound.o
-LIBS-y += drivers/tpm/libtpm.o
-LIBS-y += drivers/twserial/libtws.o
-LIBS-y += drivers/usb/eth/libusb_eth.o
-LIBS-y += drivers/usb/gadget/libusb_gadget.o
-LIBS-y += drivers/usb/host/libusb_host.o
-LIBS-y += drivers/usb/musb/libusb_musb.o
-LIBS-y += drivers/usb/musb-new/libusb_musb-new.o
-LIBS-y += drivers/usb/phy/libusb_phy.o
-LIBS-y += drivers/usb/ulpi/libusb_ulpi.o
-LIBS-y += drivers/video/libvideo.o
-LIBS-y += drivers/watchdog/libwatchdog.o
-LIBS-y += common/libcommon.o
-LIBS-y += lib/libfdt/libfdt.o
-LIBS-y += api/libapi.o
-LIBS-y += post/libpost.o
-LIBS-y += test/libtest.o
-
-ifneq ($(CONFIG_OMAP_COMMON),)
-LIBS-y += $(CPUDIR)/omap-common/libomap-common.o
-endif
+LIBS-$(CONFIG_IXP4XX_NPE) += drivers/net/npe/
+LIBS-$(CONFIG_OF_EMBED) += dts/
+LIBS-y += arch/$(ARCH)/lib/
+LIBS-y += fs/
+LIBS-y += net/
+LIBS-y += disk/
+LIBS-y += drivers/
+LIBS-y += drivers/dma/
+LIBS-y += drivers/gpio/
+LIBS-y += drivers/i2c/
+LIBS-y += drivers/input/
+LIBS-y += drivers/mmc/
+LIBS-y += drivers/mtd/
+LIBS-y += drivers/mtd/nand/
+LIBS-y += drivers/mtd/onenand/
+LIBS-y += drivers/mtd/ubi/
+LIBS-y += drivers/mtd/spi/
+LIBS-y += drivers/net/
+LIBS-y += drivers/net/phy/
+LIBS-y += drivers/pci/
+LIBS-y += drivers/power/ \
+	drivers/power/fuel_gauge/ \
+	drivers/power/mfd/ \
+	drivers/power/pmic/ \
+	drivers/power/battery/
+LIBS-y += drivers/spi/
+LIBS-$(CONFIG_FMAN_ENET) += drivers/net/fm/
+LIBS-y += drivers/serial/
+LIBS-y += drivers/usb/eth/
+LIBS-y += drivers/usb/gadget/
+LIBS-y += drivers/usb/host/
+LIBS-y += drivers/usb/musb/
+LIBS-y += drivers/usb/musb-new/
+LIBS-y += drivers/usb/phy/
+LIBS-y += drivers/usb/ulpi/
+LIBS-y += common/
+LIBS-y += lib/libfdt/
+LIBS-$(CONFIG_API) += api/
+LIBS-y += post/
+LIBS-y += test/
 
 ifneq (,$(filter $(SOC), mx25 mx27 mx5 mx6 mx31 mx35 mxs vf610))
-LIBS-y += arch/$(ARCH)/imx-common/libimx-common.o
+LIBS-y += arch/$(ARCH)/imx-common/
 endif
 
-ifeq ($(SOC),s5pc1xx)
-LIBS-y += $(CPUDIR)/s5p-common/libs5p-common.o
-endif
-ifeq ($(SOC),exynos)
-LIBS-y += $(CPUDIR)/s5p-common/libs5p-common.o
-endif
-ifneq ($(CONFIG_TEGRA),)
-LIBS-y += arch/$(ARCH)/cpu/$(SOC)-common/lib$(SOC)-common.o
-LIBS-y += arch/$(ARCH)/cpu/tegra-common/libcputegra-common.o
-LIBS-y += $(CPUDIR)/tegra-common/libtegra-common.o
-endif
+LIBS-$(CONFIG_ARM) += arch/arm/cpu/
+LIBS-$(CONFIG_PPC) += arch/powerpc/cpu/
 
+LIBS-y += board/$(BOARDDIR)/
+
+LIBS-y := $(patsubst %/, %/built-in.o, $(LIBS-y))
 LIBS := $(addprefix $(obj),$(sort $(LIBS-y)))
 .PHONY : $(LIBS)
-
-LIBBOARD = board/$(BOARDDIR)/lib$(BOARD).o
-LIBBOARD := $(addprefix $(obj),$(LIBBOARD))
 
 # Add GCC lib
 ifdef USE_PRIVATE_LIBGCC
@@ -373,7 +313,7 @@ LDPPFLAGS += \
 	  sed -ne 's/GNU ld version \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/-DLD_MAJOR=\1 -DLD_MINOR=\2/p')
 
 __OBJS := $(subst $(obj),,$(OBJS))
-__LIBS := $(subst $(obj),,$(LIBS)) $(subst $(obj),,$(LIBBOARD))
+__LIBS := $(subst $(obj),,$(LIBS))
 
 #########################################################################
 #########################################################################
@@ -398,6 +338,7 @@ ALL-y += $(obj)u-boot.srec $(obj)u-boot.bin $(obj)System.map
 
 ALL-$(CONFIG_NAND_U_BOOT) += $(obj)u-boot-nand.bin
 ALL-$(CONFIG_ONENAND_U_BOOT) += $(obj)u-boot-onenand.bin
+ALL-$(CONFIG_RAMBOOT_PBL) += $(obj)u-boot.pbl
 ALL-$(CONFIG_SPL) += $(obj)spl/u-boot-spl.bin
 ALL-$(CONFIG_SPL_FRAMEWORK) += $(obj)u-boot.img
 ALL-$(CONFIG_TPL) += $(obj)tpl/u-boot-tpl.bin
@@ -415,10 +356,12 @@ ALL-y += $(obj)u-boot-nodtb-tegra.bin
 endif
 endif
 
-all:		$(ALL-y) $(SUBDIR_EXAMPLES)
+build := -f $(TOPDIR)/scripts/Makefile.build -C
+
+all:		$(ALL-y) $(SUBDIR_EXAMPLES-y)
 
 $(obj)u-boot.dtb:	checkdtc $(obj)u-boot
-		$(MAKE) -C dts binary
+		$(MAKE) $(build) dts binary
 		mv $(obj)dts/dt.dtb $@
 
 $(obj)u-boot-dtb.bin:	$(obj)u-boot.bin $(obj)u-boot.dtb
@@ -462,7 +405,7 @@ $(obj)u-boot.img:	$(obj)u-boot.bin
 		-d $< $@
 
 $(obj)u-boot.imx: $(obj)u-boot.bin depend
-		$(MAKE) -C $(SRCTREE)/arch/arm/imx-common $(OBJTREE)/u-boot.imx
+		$(MAKE) $(build) $(SRCTREE)/arch/arm/imx-common $(OBJTREE)/u-boot.imx
 
 $(obj)u-boot.kwb:       $(obj)u-boot.bin
 		$(obj)tools/mkimage -n $(CONFIG_SYS_KWD_CONFIG) -T kwbimage \
@@ -500,11 +443,11 @@ $(obj)tpl/u-boot-with-tpl.bin: $(obj)tpl/u-boot-tpl.bin $(obj)u-boot.bin
 		$(call SPL_PAD_APPEND,$<,$(obj)u-boot.bin,tpl/u-boot-tpl-pad.bin,$(CONFIG_TPL_PAD_TO))
 
 $(obj)u-boot-with-spl.imx: $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
-		$(MAKE) -C $(SRCTREE)/arch/arm/imx-common \
+		$(MAKE) $(build) $(SRCTREE)/arch/arm/imx-common \
 			$(OBJTREE)/u-boot-with-spl.imx
 
 $(obj)u-boot-with-nand-spl.imx: $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
-		$(MAKE) -C $(SRCTREE)/arch/arm/imx-common \
+		$(MAKE) $(build) $(SRCTREE)/arch/arm/imx-common \
 			$(OBJTREE)/u-boot-with-nand-spl.imx
 
 $(obj)u-boot.ubl:       $(obj)u-boot-with-spl.bin
@@ -525,7 +468,7 @@ $(obj)u-boot.ais:       $(obj)spl/u-boot-spl.bin $(obj)u-boot.img
 
 
 $(obj)u-boot.sb:       $(obj)u-boot.bin $(obj)spl/u-boot-spl.bin
-		$(MAKE) -C $(SRCTREE)/$(CPUDIR)/$(SOC)/ $(OBJTREE)/u-boot.sb
+		$(MAKE) $(build) $(SRCTREE)/$(CPUDIR)/$(SOC)/ $(OBJTREE)/u-boot.sb
 
 # On x600 (SPEAr600) U-Boot is appended to U-Boot SPL.
 # Both images are created using mkimage (crc etc), so that the ROM
@@ -584,7 +527,7 @@ GEN_UBOOT = \
 endif
 
 $(obj)u-boot:	depend \
-		$(SUBDIR_TOOLS) $(OBJS) $(LIBBOARD) $(LIBS) $(LDSCRIPT) $(obj)u-boot.lds
+		$(SUBDIR_TOOLS) $(OBJS) $(LIBS) $(LDSCRIPT) $(obj)u-boot.lds
 		$(GEN_UBOOT)
 ifeq ($(CONFIG_KALLSYMS),y)
 		smap=`$(call SYSTEM_MAP,$(obj)u-boot) | \
@@ -594,19 +537,16 @@ ifeq ($(CONFIG_KALLSYMS),y)
 		$(GEN_UBOOT) $(obj)common/system_map.o
 endif
 
-$(OBJS):	depend
-		$(MAKE) -C $(CPUDIR) $(if $(REMOTE_BUILD),$@,$(notdir $@))
+$(OBJS):
+	@:
 
 $(LIBS):	depend $(SUBDIR_TOOLS)
-		$(MAKE) -C $(dir $(subst $(obj),,$@))
-
-$(LIBBOARD):	depend $(LIBS)
-		$(MAKE) -C $(dir $(subst $(obj),,$@))
+		$(MAKE) $(build) $(dir $(subst $(obj),,$@))
 
 $(SUBDIRS):	depend
 		$(MAKE) -C $@ all
 
-$(SUBDIR_EXAMPLES): $(obj)u-boot
+$(SUBDIR_EXAMPLES-y): $(obj)u-boot
 
 $(LDSCRIPT):	depend
 		$(MAKE) -C $(dir $@) $(notdir $@)
@@ -626,9 +566,6 @@ $(obj)spl/u-boot-spl.bin:	$(SUBDIR_TOOLS) depend
 $(obj)tpl/u-boot-tpl.bin:	$(SUBDIR_TOOLS) depend
 		$(MAKE) -C spl all CONFIG_TPL_BUILD=y
 
-updater:
-		$(MAKE) -C tools/updater all
-
 # Explicitly make _depend in subdirs containing multiple targets to prevent
 # parallel sub-makes creating .depend files simultaneously.
 depend dep:	$(TIMESTAMP_FILE) $(VERSION_FILE) \
@@ -637,8 +574,6 @@ depend dep:	$(TIMESTAMP_FILE) $(VERSION_FILE) \
 		$(obj)include/autoconf.mk \
 		$(obj)include/generated/generic-asm-offsets.h \
 		$(obj)include/generated/asm-offsets.h
-		for dir in $(SUBDIRS) $(CPUDIR) $(LDSCRIPT_MAKEFILE_DIR) ; do \
-			$(MAKE) -C $$dir _depend ; done
 
 TAG_SUBDIRS = $(SUBDIRS)
 TAG_SUBDIRS += $(dir $(__LIBS))
@@ -669,7 +604,7 @@ SYSTEM_MAP = \
 		grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | \
 		LC_ALL=C sort
 $(obj)System.map:	$(obj)u-boot
-		@$(call SYSTEM_MAP,$<) > $(obj)System.map
+		@$(call SYSTEM_MAP,$<) > $@
 
 checkthumb:
 	@if test $(call cc-version) -lt 0404; then \
@@ -773,7 +708,7 @@ else	# !config.mk
 all $(obj)u-boot.hex $(obj)u-boot.srec $(obj)u-boot.bin \
 $(obj)u-boot.img $(obj)u-boot.dis $(obj)u-boot \
 $(filter-out tools,$(SUBDIRS)) \
-updater depend dep tags ctags etags cscope $(obj)System.map:
+depend dep tags ctags etags cscope $(obj)System.map:
 	@echo "System not configured - see README" >&2
 	@ exit 1
 
@@ -840,12 +775,6 @@ unconfig:
 sinclude $(obj).boards.depend
 $(obj).boards.depend:	boards.cfg
 	@awk '(NF && $$1 !~ /^#/) { print $$7 ": " $$7 "_config; $$(MAKE)" }' $< > $@
-
-#
-# Functions to generate common board directory names
-#
-lcname	= $(shell echo $(1) | sed -e 's/\(.*\)_config/\L\1/')
-ucname	= $(shell echo $(1) | sed -e 's/\(.*\)_config/\U\1/')
 
 #########################################################################
 #########################################################################
@@ -923,8 +852,6 @@ clobber:	tidy
 	@rm -f $(obj)MLO MLO.byteswap
 	@rm -f $(obj)SPL
 	@rm -f $(obj)tools/xway-swap-bytes
-	@rm -f $(obj)arch/powerpc/cpu/mpc824x/bedbug_603e.c
-	@rm -f $(obj)arch/powerpc/cpu/mpc83xx/ddr-gen?.c
 	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
 	@rm -fr $(obj)include/generated
 	@[ ! -d $(obj)nand_spl ] || find $(obj)nand_spl -name "*" -type l -print | xargs rm -f
