@@ -58,12 +58,12 @@ DECLARE_GLOBAL_DATA_PTR;
 
 /* Timing definitions for FPGA */
 static const u32 gpmc_fpga_cfg[] = {
-        GPMC_FPGA_CONFIG1,
-        GPMC_FPGA_CONFIG2,
-        GPMC_FPGA_CONFIG3,
-        GPMC_FPGA_CONFIG4,
-        GPMC_FPGA_CONFIG5,
-        GPMC_FPGA_CONFIG6,
+	GPMC_FPGA_CONFIG1,
+	GPMC_FPGA_CONFIG2,
+	GPMC_FPGA_CONFIG3,
+	GPMC_FPGA_CONFIG4,
+	GPMC_FPGA_CONFIG5,
+	GPMC_FPGA_CONFIG6,
 };
 
 //Declare Spi Variable.
@@ -71,7 +71,7 @@ struct spi_slave *spi;
 
 int fpga_pre_fn(int cookie)
 {
-        PRINTF("%s:%d: FPGA pre-configuration\n", __func__, __LINE__);
+	PRINTF("%s:%d: FPGA pre-configuration\n", __func__, __LINE__);
 
 	gpio_request(FPGA_VCCINT_EN, "FPGA_VCCINT_EN");
 	gpio_direction_output(FPGA_VCCINT_EN, 1);
@@ -80,42 +80,42 @@ int fpga_pre_fn(int cookie)
 	gpio_request(FPGA_VCCMGT_EN, "FPGA_VCCMGT_EN");
 	gpio_direction_output(FPGA_VCCMGT_EN, 1);
 
-//	gpio_request(FPGA_CCLK, "FPGA_CCLK");
-//	gpio_direction_output(FPGA_CCLK, 0);
-//	gpio_request(FPGA_DIN, "FPGA_DIN");
-//	gpio_direction_output(FPGA_DIN, 0);
+	//	gpio_request(FPGA_CCLK, "FPGA_CCLK");
+	//	gpio_direction_output(FPGA_CCLK, 0);
+	//	gpio_request(FPGA_DIN, "FPGA_DIN");
+	//	gpio_direction_output(FPGA_DIN, 0);
 	gpio_request(FPGA_PROG, "FPGA_PROG");
 	gpio_direction_output(FPGA_PROG, 1);
 	gpio_request(FPGA_INIT_B, "FPGA_INIT_B");
 	gpio_direction_input(FPGA_INIT_B);
 	gpio_request(FPGA_DONE, "FPGA_DONE");
-        gpio_direction_input(FPGA_DONE);
-        gpio_request(FPGA_INIT_B_DIR, "FPGA_INIT_B_DIR");
-        gpio_direction_output(FPGA_INIT_B_DIR, 0);
+	gpio_direction_input(FPGA_DONE);
+	gpio_request(FPGA_INIT_B_DIR, "FPGA_INIT_B_DIR");
+	gpio_direction_output(FPGA_INIT_B_DIR, 0);
 
 	//Setup SPI
 	PRINTF("Starting SPI Setup\n");
 	spi = spi_setup_slave(1,		//bus
-			      0,		//CS
-			      48000000,		//Max Hz
-			      0			//Mode
-			      );
+			0,		//CS
+			48000000,		//Max Hz
+			0			//Mode
+			);
 	PRINTF("SPI Setup Compelte\n");
 	PRINTF("Claiming SPI Bus\n");
 	spi_claim_bus(spi);
 	PRINTF("Bus Claimed!\n");
-        spi_xfer(spi, 0, NULL, NULL,SPI_XFER_BEGIN);//send spi transfer begin flags
-	
+	spi_xfer(spi, 0, NULL, NULL,SPI_XFER_BEGIN);//send spi transfer begin flags
+
 	return 0;
 }
 
 int fpga_pgm_fn(int nassert, int nflush, int cookie)
 {
-        PRINTF("%s:%d: FPGA PROGRAM cookie=%d nassert=%d\n", __func__, __LINE__, cookie, nassert);
+	PRINTF("%s:%d: FPGA PROGRAM cookie=%d nassert=%d\n", __func__, __LINE__, cookie, nassert);
 
 	gpio_set_value(FPGA_PROG, !nassert);
 
-        return nassert;
+	return nassert;
 }
 
 
@@ -123,7 +123,7 @@ int fpga_clk_fn(int assert_clk, int flush, int cookie)
 {
 	gpio_set_value(FPGA_CCLK, assert_clk);
 
-        return assert_clk;
+	return assert_clk;
 }
 
 int fpga_init_fn(int cookie)
@@ -137,30 +137,30 @@ int fpga_done_fn(int cookie)
 {
 	PRINTF("%s:%d: FPGA DONE CHECK cookie=%d FPGA_DONE_B=%d\n", __func__, __LINE__, cookie, gpio_get_value(FPGA_DONE));
 
-        return gpio_get_value(FPGA_DONE);
+	return gpio_get_value(FPGA_DONE);
 }
 
 int fpga_wr_fn(int nassert_write, int flush, int cookie)
 {
 	gpio_set_value(FPGA_DIN, nassert_write);
 
-        return nassert_write;
+	return nassert_write;
 }
 
 int fpga_post_fn(int cookie)
 {
-        PRINTF("%s:%d: FPGA post-configuration\n", __func__, __LINE__);
+	PRINTF("%s:%d: FPGA post-configuration\n", __func__, __LINE__);
 
-        return 0;
+	return 0;
 }
 
 int fpga_bwr_fn(const void *buf, size_t bsize, int flush, int cookie)
 {
 	PRINTF("%s:%d: FPGA BLOCK WRITE cookie=%d\n", __func__, __LINE__, cookie);
 
-        size_t blocksize = 16184;
+	size_t blocksize = 16184;
 
-        unsigned int *data_ptr = (unsigned int*) buf;
+	unsigned int *data_ptr = (unsigned int*) buf;
 
 	size_t wordcount = 0;
 	size_t wsize = 0;
@@ -195,24 +195,24 @@ int fpga_bwr_fn(const void *buf, size_t bsize, int flush, int cookie)
 #ifdef CONFIG_SYS_FPGA_PROG_FEEDBACK
 		putc ('.');             /* let them know we are alive */
 #endif
-    	}
+	}
 
 	return 1;
 }
 
 Xilinx_Spartan3_Slave_Serial_fns rhino_fpga_fns = {
-        fpga_pre_fn,
-        fpga_pgm_fn,
-        fpga_clk_fn,
-        fpga_init_fn,
-        fpga_done_fn,
-        fpga_wr_fn,
-        fpga_post_fn,
+	fpga_pre_fn,
+	fpga_pgm_fn,
+	fpga_clk_fn,
+	fpga_init_fn,
+	fpga_done_fn,
+	fpga_wr_fn,
+	fpga_post_fn,
 	fpga_bwr_fn,
 };
 
 Xilinx_desc fpga = XILINX_XC6SLX4_DESC(slave_serial,
-                        (void *)&rhino_fpga_fns, 0);
+		(void *)&rhino_fpga_fns, 0);
 #endif
 
 /*
@@ -225,16 +225,16 @@ int board_init(void)
 
 #ifdef CONFIG_FPGA
 	/* Configure GPMC for FPGA memory accesses */
-        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[1], FPGA_CS1_BASE, GPMC_SIZE_64M);
-        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[2], FPGA_CS2_BASE, GPMC_SIZE_128M);
-        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[3], FPGA_CS3_BASE, GPMC_SIZE_128M);
-        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[4], FPGA_CS4_BASE, GPMC_SIZE_128M);
-        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[5], FPGA_CS5_BASE, GPMC_SIZE_128M);
-        enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[6], FPGA_CS6_BASE, GPMC_SIZE_128M);
+	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[1], FPGA_CS1_BASE, GPMC_SIZE_64M);
+	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[2], FPGA_CS2_BASE, GPMC_SIZE_128M);
+	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[3], FPGA_CS3_BASE, GPMC_SIZE_128M);
+	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[4], FPGA_CS4_BASE, GPMC_SIZE_128M);
+	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[5], FPGA_CS5_BASE, GPMC_SIZE_128M);
+	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[6], FPGA_CS6_BASE, GPMC_SIZE_128M);
 	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[7], FPGA_CS7_BASE, GPMC_SIZE_128M);
 
-        fpga_init();
-        fpga_add(fpga_xilinx, &fpga);
+	fpga_init();
+	fpga_add(fpga_xilinx, &fpga);
 #endif
 
 	/* board id for Linux */
@@ -292,13 +292,13 @@ static void am3517_evm_musb_init(void)
 #endif
 
 /*
- * Routine: misc_init_r
- * Description: Init i2c, ethernet, etc... (done here so udelay works)
- */
+ *  * Routine: misc_init_r
+ *   * Description: Init i2c, ethernet, etc... (done here so udelay works)
+ *    */
 int misc_init_r(void)
 {
-#ifdef CONFIG_DRIVER_OMAP34XX_I2C
-	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+#ifdef CONFIG_SYS_I2C_OMAP34XX
+	i2c_init(CONFIG_SYS_OMAP24_I2C_SPEED, CONFIG_SYS_OMAP24_I2C_SLAVE);
 #endif
 
 	dieid_num_r();
@@ -342,4 +342,3 @@ int board_eth_init(bd_t *bis)
 	return n;
 }
 #endif
-
