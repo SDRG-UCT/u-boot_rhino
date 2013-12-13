@@ -1438,7 +1438,7 @@ jffs2_1pass_build_lists(struct part_info * part)
 {
 	struct b_lists *pL;
 	struct jffs2_unknown_node *node;
-	u32 nr_sectors = part->size/part->sector_size;
+	u32 nr_sectors = do_div(part->size,part->sector_size);
 	u32 i;
 	u32 counter4 = 0;
 	u32 counterF = 0;
