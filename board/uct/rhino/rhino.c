@@ -223,6 +223,10 @@ int board_init(void)
 
 	fpga_init();
 	fpga_add(fpga_xilinx, &fpga);
+
+	gpio_request(FPGA_DONE, "FPGA_DONE");
+	gpio_direction_input(FPGA_DONE);
+
 #endif
 
 	/* board id for Linux */
