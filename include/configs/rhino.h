@@ -19,7 +19,7 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#undef DEBUG
+#define DEBUG
 
 /*
  * High Level Configuration Options
@@ -399,7 +399,7 @@
 #define CONFIG_SPL_LIBDISK_SUPPORT
 #define CONFIG_SPL_I2C_SUPPORT
 #define CONFIG_SPL_LIBGENERIC_SUPPORT
-#define CONFIG_SPL_MMC_SUPPORT
+#define CONFIG_SPL_MMC_SUPPORT 2
 #define CONFIG_SPL_FAT_SUPPORT
 #define CONFIG_SPL_SERIAL_SUPPORT
 #define CONFIG_SPL_NAND_SUPPORT

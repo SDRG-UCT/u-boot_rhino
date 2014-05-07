@@ -216,7 +216,7 @@ const omap3_sysinfo sysinfo = {
 	\
 	/* MMC2 */ \
 	\
-	MUX_VAL(CP(MMC2_CLK),		(IDIS | PTD | DIS | M0)) \
+	MUX_VAL(CP(MMC2_CLK),		(IEN  | PTU | EN  | M0)) \
 	MUX_VAL(CP(MMC2_CMD),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(MMC2_DAT0),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(MMC2_DAT1),		(IEN  | PTD | DIS | M0)) \
