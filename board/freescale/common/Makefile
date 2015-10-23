@@ -13,7 +13,10 @@ MINIMAL=y
 endif
 endif
 
-ifndef MINIMAL
+ifdef MINIMAL
+# necessary to create built-in.o
+obj- := __dummy__.o
+else
 obj-$(CONFIG_FSL_CADMUS)	+= cadmus.o
 obj-$(CONFIG_FSL_VIA)		+= cds_via.o
 obj-$(CONFIG_FMAN_ENET)	+= fman.o
@@ -45,6 +48,7 @@ obj-$(CONFIG_P5020DS)		+= ics307_clk.o
 obj-$(CONFIG_P5040DS)		+= ics307_clk.o
 obj-$(CONFIG_VSC_CROSSBAR)    += vsc3316_3308.o
 obj-$(CONFIG_IDT8T49N222A)	+= idt8t49n222a_serdes_clk.o
+obj-$(CONFIG_ZM7300)		+= zm7300.o
 
 # deal with common files for P-series corenet based devices
 obj-$(CONFIG_P2041RDB)	+= p_corenet/

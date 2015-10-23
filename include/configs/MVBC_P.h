@@ -13,7 +13,6 @@
 
 #include <version.h>
 
-#define CONFIG_MPC5xxx	1
 #define CONFIG_MPC5200 	1
 
 #ifndef CONFIG_SYS_TEXT_BASE
@@ -90,6 +89,7 @@
 #define CONFIG_CMD_SDRAM
 #define CONFIG_CMD_PCI
 #define CONFIG_CMD_FPGA
+#define CONFIG_CMD_FPGA_LOADMK
 #define CONFIG_CMD_I2C
 
 #undef CONFIG_WATCHDOG
@@ -105,6 +105,7 @@
 #define CONFIG_BOOTP_NTPSERVER
 #define CONFIG_BOOTP_RANDOM_DELAY
 #define CONFIG_BOOTP_SEND_HOSTNAME
+#define CONFIG_LIB_RAND
 
 /*
  * Autoboot

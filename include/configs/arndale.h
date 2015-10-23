@@ -22,8 +22,6 @@
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
-/* Enable fdt support for Exynos5250 */
-#define CONFIG_ARCH_DEVICE_TREE		exynos5250
 #define CONFIG_OF_CONTROL
 #define CONFIG_OF_SEPARATE
 
@@ -226,10 +224,12 @@
 
 /* PMIC */
 #define CONFIG_PMIC
-#define CONFIG_PMIC_I2C
-#define CONFIG_PMIC_MAX77686
+#define CONFIG_POWER_I2C
+#define CONFIG_POWER_MAX77686
 
 #define CONFIG_DEFAULT_DEVICE_TREE	exynos5250-arndale
+
+#define CONFIG_PREBOOT
 
 /* Ethernet Controllor Driver */
 #ifdef CONFIG_CMD_NET

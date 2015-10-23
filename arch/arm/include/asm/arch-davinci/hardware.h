@@ -15,7 +15,7 @@
 #define __ASM_ARCH_HARDWARE_H
 
 #include <config.h>
-#include <asm/sizes.h>
+#include <linux/sizes.h>
 
 #define	REG(addr)	(*(volatile unsigned int *)(addr))
 #define REG_P(addr)	((volatile unsigned int *)(addr))
@@ -597,7 +597,6 @@ static inline enum davinci_clk_ids get_async3_src(void)
 #if defined(CONFIG_SOC_DM365)
 #include <asm/arch/aintc_defs.h>
 #include <asm/arch/ddr2_defs.h>
-#include <asm/arch/emif_defs.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/pll_defs.h>
 #include <asm/arch/psc_defs.h>

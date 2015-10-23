@@ -15,6 +15,7 @@
 #include "mux_data.h"
 
 #if defined(CONFIG_USB_EHCI) || defined(CONFIG_USB_XHCI_OMAP)
+#include <sata.h>
 #include <usb.h>
 #include <asm/gpio.h>
 #include <asm/arch/clock.h>
@@ -70,7 +71,7 @@ int board_init(void)
 
 int board_late_init(void)
 {
-	omap_sata_init();
+	init_sata(0);
 	return 0;
 }
 
@@ -118,28 +119,19 @@ static void enable_host_clocks(void)
 int misc_init_r(void)
 {
 	int reg;
-	uint8_t device_mac[6];
+	u32 id[4];
 
 #ifdef CONFIG_PALMAS_POWER
 	palmas_init_settings();
 #endif
 
-	if (!getenv("usbethaddr")) {
-		reg = DIE_ID_REG_BASE + DIE_ID_REG_OFFSET;
+	reg = DIE_ID_REG_BASE + DIE_ID_REG_OFFSET;
 
-		/*
-		 * create a fake MAC address from the processor ID code.
-		 * first byte is 0x02 to signify locally administered.
-		 */
-		device_mac[0] = 0x02;
-		device_mac[1] = readl(reg + 0x10) & 0xff;
-		device_mac[2] = readl(reg + 0xC) & 0xff;
-		device_mac[3] = readl(reg + 0x8) & 0xff;
-		device_mac[4] = readl(reg) & 0xff;
-		device_mac[5] = (readl(reg) >> 8) & 0xff;
-
-		eth_setenv_enetaddr("usbethaddr", device_mac);
-	}
+	id[0] = readl(reg);
+	id[1] = readl(reg + 0x8);
+	id[2] = readl(reg + 0xC);
+	id[3] = readl(reg + 0x10);
+	usb_fake_mac_from_die_id(id);
 
 	return 0;
 }
@@ -154,19 +146,6 @@ void set_muxconf_regs_essential(void)
 	do_set_mux((*ctrl)->control_padconf_wkup_base,
 		   wkup_padconf_array_essential,
 		   sizeof(wkup_padconf_array_essential) /
-		   sizeof(struct pad_conf_entry));
-}
-
-void set_muxconf_regs_non_essential(void)
-{
-	do_set_mux((*ctrl)->control_padconf_core_base,
-		   core_padconf_array_non_essential,
-		   sizeof(core_padconf_array_non_essential) /
-		   sizeof(struct pad_conf_entry));
-
-	do_set_mux((*ctrl)->control_padconf_wkup_base,
-		   wkup_padconf_array_non_essential,
-		   sizeof(wkup_padconf_array_non_essential) /
 		   sizeof(struct pad_conf_entry));
 }
 

@@ -398,8 +398,6 @@ LIST_at91="$(targets_by_soc at91)"
 
 LIST_pxa="$(targets_by_cpu pxa)"
 
-LIST_ixp="$(targets_by_cpu ixp)"
-
 #########################################################################
 ## SPEAr Systems
 #########################################################################
@@ -420,50 +418,8 @@ LIST_arm="$(targets_by_arch arm |		\
 ## MIPS Systems		(default = big endian)
 #########################################################################
 
-LIST_mips4kc="		\
-	incaip		\
-	incaip_100MHz	\
-	incaip_133MHz	\
-	incaip_150MHz	\
-	qemu_mips	\
-	vct_platinum	\
-	vct_platinum_small	\
-	vct_platinum_onenand	\
-	vct_platinum_onenand_small	\
-	vct_platinumavc	\
-	vct_platinumavc_small	\
-	vct_platinumavc_onenand	\
-	vct_platinumavc_onenand_small	\
-	vct_premium	\
-	vct_premium_small	\
-	vct_premium_onenand	\
-	vct_premium_onenand_small	\
-"
+LIST_mips="$(targets_by_arch mips)"
 
-LIST_au1xx0="		\
-	dbau1000	\
-	dbau1100	\
-	dbau1500	\
-	dbau1550	\
-"
-
-LIST_mips="		\
-	${LIST_mips4kc}	\
-	${LIST_mips5kc}	\
-	${LIST_au1xx0}	\
-"
-
-#########################################################################
-## MIPS Systems		(little endian)
-#########################################################################
-
-LIST_au1xx0_el="	\
-	dbau1550_el	\
-	pb1000		\
-"
-LIST_mips_el="			\
-	${LIST_au1xx0_el}	\
-"
 #########################################################################
 ## OpenRISC Systems
 #########################################################################
@@ -528,6 +484,12 @@ LIST_sparc="$(targets_by_arch sparc)"
 #########################################################################
 
 LIST_nds32="$(targets_by_arch nds32)"
+
+#########################################################################
+## ARC Systems
+#########################################################################
+
+LIST_arc="$(targets_by_arch arc)"
 
 #-----------------------------------------------------------------------
 
@@ -668,8 +630,6 @@ build_target() {
 		output_dir="${OUTPUT_PREFIX}"
 	fi
 
-	export BUILD_DIR="${output_dir}"
-
 	target_arch=$(get_target_arch ${target})
 	eval cross_toolchain=\$CROSS_COMPILE_`echo $target_arch | tr '[:lower:]' '[:upper:]'`
 	if [ "${cross_toolchain}" ] ; then
@@ -678,6 +638,10 @@ build_target() {
 	    MAKE="make CROSS_COMPILE=${CROSS_COMPILE}"
 	else
 	    MAKE=make
+	fi
+
+	if [  "${output_dir}" != "." ] ; then
+		MAKE="${MAKE} O=${output_dir}"
 	fi
 
 	${MAKE} distclean >/dev/null
@@ -694,7 +658,7 @@ build_target() {
 	if [ $BUILD_MANY == 1 ] ; then
 		trap - TERM
 
-		${MAKE} -s tidy
+		${MAKE} -s clean
 
 		if [ -s ${LOG_DIR}/${target}.ERR ] ; then
 			cp ${LOG_DIR}/${target}.ERR ${OUTPUT_PREFIX}/ERR/${target}

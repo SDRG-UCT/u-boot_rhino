@@ -9,15 +9,11 @@
 #define _SYS_PROTO_H_
 
 #include <asm/imx-common/regs-common.h>
+#include "../arch-imx/cpu.h"
 
-#define MXC_CPU_MX51		0x51
-#define MXC_CPU_MX53		0x53
-#define MXC_CPU_MX6SL		0x60
-#define MXC_CPU_MX6DL		0x61
-#define MXC_CPU_MX6SOLO		0x62
-#define MXC_CPU_MX6Q		0x63
+#define soc_rev() (get_cpu_rev() & 0xFF)
+#define is_soc_rev(rev)        (soc_rev() - rev)
 
-#define is_soc_rev(rev)	((get_cpu_rev() & 0xFF) - rev)
 u32 get_cpu_rev(void);
 
 /* returns MXC_CPU_ value */

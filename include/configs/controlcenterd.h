@@ -41,7 +41,6 @@
 /* High Level Configuration Options */
 #define CONFIG_BOOKE			/* BOOKE */
 #define CONFIG_E500			/* BOOKE e500 family */
-#define CONFIG_MPC85xx			/* MPC8540/60/55/41/48 */
 #define CONFIG_P1022
 #define CONFIG_CONTROLCENTERD
 #define CONFIG_MP			/* support multiple processors */
@@ -200,9 +199,10 @@
 #define CONFIG_SYS_FSL_I2C2_SPEED	400000
 #define CONFIG_SYS_FSL_I2C2_SLAVE	0x7F
 #define CONFIG_SYS_FSL_I2C2_OFFSET	0x3100
-/* Probing DP501 I2C-Bridge will hang */
-#define CONFIG_SYS_I2C_NOPROBES		{ {0, 0x30}, {0, 0x37}, {0, 0x3a}, \
-					  {0, 0x3b}, {0, 0x50} }
+
+#ifndef CONFIG_TRAILBLAZER
+#define CONFIG_CMD_I2C
+#endif
 
 #define CONFIG_PCA9698			/* NXP PCA9698 */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2012 Freescale Semiconductor, Inc.
+ * Copyright 2008-2014 Freescale Semiconductor, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,18 @@
 #define UL_2POW13 (1UL << 13)
 
 #define ULL_8FS 0xFFFFFFFFULL
+
+u32 fsl_ddr_get_version(void)
+{
+	struct ccsr_ddr __iomem *ddr;
+	u32 ver_major_minor_errata;
+
+	ddr = (void *)_DDR_ADDR;
+	ver_major_minor_errata = (ddr_in32(&ddr->ip_rev1) & 0xFFFF) << 8;
+	ver_major_minor_errata |= (ddr_in32(&ddr->ip_rev2) & 0xFF00) >> 8;
+
+	return ver_major_minor_errata;
+}
 
 /*
  * Round up mclk_ps to nearest 1 ps in memory controller code
@@ -146,21 +158,21 @@ void board_add_ram_info(int use_default)
 	u32 *mcintl3r = (void *) (CONFIG_SYS_IMMR + 0x18004);
 #endif
 #if (CONFIG_NUM_DDR_CONTROLLERS > 1)
-	uint32_t cs0_config = in_be32(&ddr->cs0_config);
+	uint32_t cs0_config = ddr_in32(&ddr->cs0_config);
 #endif
-	uint32_t sdram_cfg = in_be32(&ddr->sdram_cfg);
+	uint32_t sdram_cfg = ddr_in32(&ddr->sdram_cfg);
 	int cas_lat;
 
 #if CONFIG_NUM_DDR_CONTROLLERS >= 2
 	if (!(sdram_cfg & SDRAM_CFG_MEM_EN)) {
 		ddr = (void __iomem *)CONFIG_SYS_FSL_DDR2_ADDR;
-		sdram_cfg = in_be32(&ddr->sdram_cfg);
+		sdram_cfg = ddr_in32(&ddr->sdram_cfg);
 	}
 #endif
 #if CONFIG_NUM_DDR_CONTROLLERS >= 3
 	if (!(sdram_cfg & SDRAM_CFG_MEM_EN)) {
 		ddr = (void __iomem *)CONFIG_SYS_FSL_DDR3_ADDR;
-		sdram_cfg = in_be32(&ddr->sdram_cfg);
+		sdram_cfg = ddr_in32(&ddr->sdram_cfg);
 	}
 #endif
 	puts(" (DDR");
@@ -175,6 +187,9 @@ void board_add_ram_info(int use_default)
 	case SDRAM_TYPE_DDR3:
 		puts("3");
 		break;
+	case SDRAM_TYPE_DDR4:
+		puts("4");
+		break;
 	default:
 		puts("?");
 		break;
@@ -188,9 +203,12 @@ void board_add_ram_info(int use_default)
 		puts(", 64-bit");
 
 	/* Calculate CAS latency based on timing cfg values */
-	cas_lat = ((in_be32(&ddr->timing_cfg_1) >> 16) & 0xf) + 1;
-	if ((in_be32(&ddr->timing_cfg_3) >> 12) & 1)
-		cas_lat += (8 << 1);
+	cas_lat = ((ddr_in32(&ddr->timing_cfg_1) >> 16) & 0xf);
+	if (fsl_ddr_get_version() <= 0x40400)
+		cas_lat += 1;
+	else
+		cas_lat += 2;
+	cas_lat += ((ddr_in32(&ddr->timing_cfg_3) >> 12) & 3) << 4;
 	printf(", CL=%d", cas_lat >> 1);
 	if (cas_lat & 0x1)
 		puts(".5");
@@ -228,6 +246,9 @@ void board_add_ram_info(int use_default)
 		puts("       DDR Controller Interleaving Mode: ");
 
 		switch ((cs0_config >> 24) & 0xf) {
+		case FSL_DDR_256B_INTERLEAVING:
+			puts("256B");
+			break;
 		case FSL_DDR_CACHE_LINE_INTERLEAVING:
 			puts("cache line");
 			break;

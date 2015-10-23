@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2011 Freescale Semiconductor, Inc.
+ * Copyright 2008-2014 Freescale Semiconductor, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -9,10 +9,23 @@
 #ifndef FSL_DDR_MAIN_H
 #define FSL_DDR_MAIN_H
 
+#include <fsl_ddrc_version.h>
 #include <fsl_ddr_sdram.h>
 #include <fsl_ddr_dimm_params.h>
 
 #include <common_timing_params.h>
+
+#ifdef CONFIG_SYS_FSL_DDR_LE
+#define ddr_in32(a)	in_le32(a)
+#define ddr_out32(a, v)	out_le32(a, v)
+#else
+#define ddr_in32(a)	in_be32(a)
+#define ddr_out32(a, v)	out_be32(a, v)
+#endif
+
+#define _DDR_ADDR CONFIG_SYS_FSL_DDR_ADDR
+
+u32 fsl_ddr_get_version(void);
 
 #if defined(CONFIG_DDR_SPD) || defined(CONFIG_SPD_EEPROM)
 /*
@@ -93,6 +106,7 @@ void fsl_ddr_get_spd(generic_spd_eeprom_t *ctrl_dimms_spd,
 
 int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 unsigned int check_fsl_memctl_config_regs(const fsl_ddr_cfg_regs_t *ddr);
+void board_add_ram_info(int use_default);
 
 /* processor specific function */
 void fsl_ddr_set_memctl_regs(const fsl_ddr_cfg_regs_t *regs,

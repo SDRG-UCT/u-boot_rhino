@@ -18,8 +18,24 @@
 
 #include <configs/ti_am335x_common.h>
 
+#ifndef CONFIG_SPL_BUILD
+# define CONFIG_FIT
+# define CONFIG_TIMESTAMP
+# define CONFIG_LZO
+# ifdef CONFIG_ENABLE_VBOOT
+#  define CONFIG_OF_CONTROL
+#  define CONFIG_OF_SEPARATE
+#  define CONFIG_DEFAULT_DEVICE_TREE am335x-boneblack
+#  define CONFIG_FIT_SIGNATURE
+#  define CONFIG_RSA
+# endif
+#endif
+
+#define CONFIG_SYS_BOOTM_LEN		(16 << 20)
+
 #define MACH_TYPE_TIAM335EVM		3589	/* Until the next sync */
 #define CONFIG_MACH_TYPE		MACH_TYPE_TIAM335EVM
+#define CONFIG_BOARD_LATE_INIT
 
 /* Clock Defines */
 #define V_OSCK				24000000  /* Clock output from T2 */
@@ -30,6 +46,12 @@
 
 /* Always 128 KiB env size */
 #define CONFIG_ENV_SIZE			(128 << 10)
+
+/* Enhance our eMMC support / experience. */
+#define CONFIG_CMD_GPT
+#define CONFIG_EFI_PARTITION
+#define CONFIG_PARTITION_UUIDS
+#define CONFIG_CMD_PART
 
 #ifdef CONFIG_NAND
 #define NANDARGS \
@@ -54,16 +76,16 @@
 
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"loadaddr=0x80200000\0" \
-	"fdtaddr=0x80F80000\0" \
-	"fdt_high=0xffffffff\0" \
+	DEFAULT_LINUX_BOOT_ENV \
 	"boot_fdt=try\0" \
-	"rdaddr=0x81000000\0" \
 	"bootpart=0:2\0" \
 	"bootdir=/boot\0" \
 	"bootfile=zImage\0" \
 	"fdtfile=undefined\0" \
 	"console=ttyO0,115200n8\0" \
+	"partitions=" \
+		"uuid_disk=${uuid_gpt_disk};" \
+		"name=rootfs,start=2MiB,size=-,uuid=${uuid_gpt_rootfs}\0" \
 	"optargs=\0" \
 	"mmcdev=0\0" \
 	"mmcroot=/dev/mmcblk0p2 ro\0" \
@@ -72,7 +94,7 @@
 	"nfsopts=nolock\0" \
 	"static_ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}" \
 		"::off\0" \
-	"ramroot=/dev/ram0 rw ramdisk_size=65536 initrd=${rdaddr},64M\0" \
+	"ramroot=/dev/ram0 rw\0" \
 	"ramrootfstype=ext2\0" \
 	"mmcargs=setenv bootargs console=${console} " \
 		"${optargs} " \
@@ -198,9 +220,6 @@
 #define CONFIG_BOOTCOUNT_LIMIT
 #define CONFIG_BOOTCOUNT_AM33XX
 
-/* CPSW support */
-#define CONFIG_SPL_ETH_SUPPORT
-
 /* USB gadget RNDIS */
 #define CONFIG_SPL_MUSB_NEW_SUPPORT
 
@@ -208,14 +227,6 @@
 #define CONFIG_SPL_NET_SUPPORT
 #define CONFIG_SPL_ENV_SUPPORT
 #define CONFIG_SPL_NET_VCI_STRING	"AM335x U-Boot SPL"
-
-/* SPI flash. */
-#define CONFIG_SPL_SPI_SUPPORT
-#define CONFIG_SPL_SPI_FLASH_SUPPORT
-#define CONFIG_SPL_SPI_LOAD
-#define CONFIG_SPL_SPI_BUS		0
-#define CONFIG_SPL_SPI_CS		0
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x20000
 
 #define CONFIG_SPL_LDSCRIPT		"$(CPUDIR)/am33xx/u-boot-spl.lds"
 
@@ -295,6 +306,9 @@
 #if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_USBETH_SUPPORT)
 /* disable host part of MUSB in SPL */
 #undef CONFIG_MUSB_HOST
+/* disable EFI partitions and partition UUID support */
+#undef CONFIG_PARTITION_UUIDS
+#undef CONFIG_EFI_PARTITION
 /*
  * Disable CPSW SPL support so we fit within the 101KiB limit.
  */
@@ -302,6 +316,7 @@
 #endif
 
 /* USB Device Firmware Update support */
+#ifndef CONFIG_SPL_BUILD
 #define CONFIG_DFU_FUNCTION
 #define CONFIG_DFU_MMC
 #define CONFIG_CMD_DFU
@@ -310,10 +325,10 @@
 	"boot part 0 1;" \
 	"rootfs part 0 2;" \
 	"MLO fat 0 1;" \
-	"MLO.raw mmc 100 100;" \
-	"u-boot.img.raw mmc 300 400;" \
-	"spl-os-args.raw mmc 80 80;" \
-	"spl-os-image.raw mmc 900 2000;" \
+	"MLO.raw mmc 0x100 0x100;" \
+	"u-boot.img.raw mmc 0x300 0x400;" \
+	"spl-os-args.raw mmc 0x80 0x80;" \
+	"spl-os-image.raw mmc 0x900 0x2000;" \
 	"spl-os-args fat 0 1;" \
 	"spl-os-image fat 0 1;" \
 	"u-boot.img fat 0 1;" \
@@ -344,6 +359,7 @@
 	DFU_ALT_INFO_MMC \
 	DFU_ALT_INFO_RAM \
 	DFU_ALT_INFO_NAND
+#endif
 
 /*
  * Default to using SPI for environment, etc.
@@ -355,6 +371,15 @@
  * 0x442000 - 0x800000 : Userland
  */
 #if defined(CONFIG_SPI_BOOT)
+/* SPL related */
+#undef CONFIG_SPL_OS_BOOT		/* Not supported by existing map */
+#define CONFIG_SPL_SPI_SUPPORT
+#define CONFIG_SPL_SPI_FLASH_SUPPORT
+#define CONFIG_SPL_SPI_LOAD
+#define CONFIG_SPL_SPI_BUS		0
+#define CONFIG_SPL_SPI_CS		0
+#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x20000
+
 #define CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_SYS_REDUNDAND_ENVIRONMENT
 #define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
@@ -385,13 +410,11 @@
 /* Network. */
 #define CONFIG_PHY_GIGE
 #define CONFIG_PHYLIB
-#define CONFIG_PHY_ADDR			0
 #define CONFIG_PHY_SMSC
 
 /* NAND support */
 #ifdef CONFIG_NAND
 #define CONFIG_CMD_NAND
-#define GPMC_NAND_ECC_LP_x16_LAYOUT	1
 #if !defined(CONFIG_SPI_BOOT) && !defined(CONFIG_NOR_BOOT)
 #define MTDIDS_DEFAULT			"nand0=omap2-nand.0"
 #define MTDPARTS_DEFAULT		"mtdparts=omap2-nand.0:128k(SPL)," \
@@ -431,6 +454,7 @@
 #define CONFIG_SYS_FLASH_BASE		(0x08000000)
 #define CONFIG_SYS_FLASH_CFI_WIDTH	FLASH_CFI_16BIT
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_FLASH_BASE
+/* Reduce SPL size by removing unlikey targets */
 #ifdef CONFIG_NOR_BOOT
 #define CONFIG_ENV_IS_IN_FLASH
 #define CONFIG_ENV_SECT_SIZE		(128 << 10)	/* 128 KiB */

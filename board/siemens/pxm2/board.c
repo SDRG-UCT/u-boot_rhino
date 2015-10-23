@@ -70,11 +70,11 @@ struct cmd_control pxm2_ddr3_cmd_ctrl_data = {
 };
 
 const struct ctrl_ioregs ioregs = {
-	.cm0ioctl		= DXR2_IOCTRL_VAL,
-	.cm1ioctl		= DXR2_IOCTRL_VAL,
-	.cm2ioctl		= DXR2_IOCTRL_VAL,
-	.dt0ioctl		= DXR2_IOCTRL_VAL,
-	.dt1ioctl		= DXR2_IOCTRL_VAL,
+	.cm0ioctl		= DDR_IOCTRL_VAL,
+	.cm1ioctl		= DDR_IOCTRL_VAL,
+	.cm2ioctl		= DDR_IOCTRL_VAL,
+	.dt0ioctl		= DDR_IOCTRL_VAL,
+	.dt1ioctl		= DDR_IOCTRL_VAL,
 };
 
 	config_ddr(DDR_PLL_FREQ, &ioregs, &pxm2_ddr3_data,
@@ -181,13 +181,13 @@ static struct cpsw_slave_data cpsw_slaves[] = {
 	{
 		.slave_reg_ofs	= 0x208,
 		.sliver_reg_ofs	= 0xd80,
-		.phy_id		= 0,
+		.phy_addr	= 0,
 		.phy_if		= PHY_INTERFACE_MODE_RMII,
 	},
 	{
 		.slave_reg_ofs	= 0x308,
 		.sliver_reg_ofs	= 0xdc0,
-		.phy_id		= 1,
+		.phy_addr	= 1,
 		.phy_if		= PHY_INTERFACE_MODE_RMII,
 	},
 };

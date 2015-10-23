@@ -45,13 +45,6 @@
 #define CONFIG_MISC_INIT_R
 
 #define CONFIG_OF_LIBFDT		1
-/*
- * The early kernel mapping on ARM currently only maps from the base of DRAM
- * to the end of the kernel image.  The kernel is loaded at DRAM base + 0x8000.
- * The early kernel pagetable uses DRAM base + 0x4000 to DRAM base + 0x8000,
- * so that leaves DRAM base to DRAM base + 0x4000 available.
- */
-#define CONFIG_SYS_BOOTMAPSZ	        0x4000
 
 #define CONFIG_CMDLINE_TAG		/* enable passing of ATAGs */
 #define CONFIG_SETUP_MEMORY_TAGS
@@ -111,8 +104,6 @@
 #define CONFIG_USB_DEVICE
 #define CONFIG_USB_TTY
 #define CONFIG_SYS_CONSOLE_IS_IN_ENV
-/* This delay is really for slow-to-power-on USB sticks, not the hub */
-#define CONFIG_USB_HUB_MIN_POWER_ON_DELAY 500
 
 /* commands to include */
 #include <config_cmd_default.h>
@@ -163,10 +154,9 @@
 #define CONFIG_SYS_NAND_BASE		NAND_BASE	/* physical address */
 							/* to access nand at */
 							/* CS0 */
-#define GPMC_NAND_ECC_LP_x8_LAYOUT
-
 #define CONFIG_SYS_MAX_NAND_DEVICE	1		/* Max number of NAND */
 							/* devices */
+
 /* Environment information */
 #define CONFIG_BOOTDELAY		3
 #define CONFIG_ZERO_BOOTDELAY_CHECK

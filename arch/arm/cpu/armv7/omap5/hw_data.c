@@ -372,6 +372,38 @@ struct vcores_data dra752_volts = {
 	.iva.pmic	= &tps659038,
 };
 
+struct vcores_data dra722_volts = {
+	.mpu.value	= 1000,
+	.mpu.efuse.reg	= STD_FUSE_OPP_VMIN_MPU_NOM,
+	.mpu.efuse.reg_bits	= DRA752_EFUSE_REGBITS,
+	.mpu.addr	= 0x23,
+	.mpu.pmic	= &tps659038,
+
+	.eve.value	= 1000,
+	.eve.efuse.reg	= STD_FUSE_OPP_VMIN_DSPEVE_NOM,
+	.eve.efuse.reg_bits	= DRA752_EFUSE_REGBITS,
+	.eve.addr	= 0x2f,
+	.eve.pmic	= &tps659038,
+
+	.gpu.value	= 1000,
+	.gpu.efuse.reg	= STD_FUSE_OPP_VMIN_GPU_NOM,
+	.gpu.efuse.reg_bits	= DRA752_EFUSE_REGBITS,
+	.gpu.addr	= 0x2f,
+	.gpu.pmic	= &tps659038,
+
+	.core.value	= 1000,
+	.core.efuse.reg	= STD_FUSE_OPP_VMIN_CORE_NOM,
+	.core.efuse.reg_bits = DRA752_EFUSE_REGBITS,
+	.core.addr	= 0x27,
+	.core.pmic	= &tps659038,
+
+	.iva.value	= 1000,
+	.iva.efuse.reg	= STD_FUSE_OPP_VMIN_IVA_NOM,
+	.iva.efuse.reg_bits	= DRA752_EFUSE_REGBITS,
+	.iva.addr	= 0x2f,
+	.iva.pmic	= &tps659038,
+};
+
 /*
  * Enable essential clock domains, modules and
  * do some additional special settings needed
@@ -486,94 +518,6 @@ void enable_basic_uboot_clocks(void)
 			 1);
 }
 
-/*
- * Enable non-essential clock domains, modules and
- * do some additional special settings needed
- */
-void enable_non_essential_clocks(void)
-{
-	u32 const clk_domains_non_essential[] = {
-		(*prcm)->cm_mpu_m3_clkstctrl,
-		(*prcm)->cm_ivahd_clkstctrl,
-		(*prcm)->cm_dsp_clkstctrl,
-		(*prcm)->cm_dss_clkstctrl,
-		(*prcm)->cm_sgx_clkstctrl,
-		(*prcm)->cm1_abe_clkstctrl,
-		(*prcm)->cm_c2c_clkstctrl,
-		(*prcm)->cm_cam_clkstctrl,
-		(*prcm)->cm_dss_clkstctrl,
-		(*prcm)->cm_sdma_clkstctrl,
-		0
-	};
-
-	u32 const clk_modules_hw_auto_non_essential[] = {
-		(*prcm)->cm_mpu_m3_mpu_m3_clkctrl,
-		(*prcm)->cm_ivahd_ivahd_clkctrl,
-		(*prcm)->cm_ivahd_sl2_clkctrl,
-		(*prcm)->cm_dsp_dsp_clkctrl,
-		(*prcm)->cm_l3instr_l3_3_clkctrl,
-		(*prcm)->cm_l3instr_l3_instr_clkctrl,
-		(*prcm)->cm_l3instr_intrconn_wp1_clkctrl,
-		(*prcm)->cm_l3init_hsi_clkctrl,
-		(*prcm)->cm_l4per_hdq1w_clkctrl,
-		0
-	};
-
-	u32 const clk_modules_explicit_en_non_essential[] = {
-		(*prcm)->cm1_abe_aess_clkctrl,
-		(*prcm)->cm1_abe_pdm_clkctrl,
-		(*prcm)->cm1_abe_dmic_clkctrl,
-		(*prcm)->cm1_abe_mcasp_clkctrl,
-		(*prcm)->cm1_abe_mcbsp1_clkctrl,
-		(*prcm)->cm1_abe_mcbsp2_clkctrl,
-		(*prcm)->cm1_abe_mcbsp3_clkctrl,
-		(*prcm)->cm1_abe_slimbus_clkctrl,
-		(*prcm)->cm1_abe_timer5_clkctrl,
-		(*prcm)->cm1_abe_timer6_clkctrl,
-		(*prcm)->cm1_abe_timer7_clkctrl,
-		(*prcm)->cm1_abe_timer8_clkctrl,
-		(*prcm)->cm1_abe_wdt3_clkctrl,
-		(*prcm)->cm_l4per_gptimer9_clkctrl,
-		(*prcm)->cm_l4per_gptimer10_clkctrl,
-		(*prcm)->cm_l4per_gptimer11_clkctrl,
-		(*prcm)->cm_l4per_gptimer3_clkctrl,
-		(*prcm)->cm_l4per_gptimer4_clkctrl,
-		(*prcm)->cm_l4per_mcspi2_clkctrl,
-		(*prcm)->cm_l4per_mcspi3_clkctrl,
-		(*prcm)->cm_l4per_mcspi4_clkctrl,
-		(*prcm)->cm_l4per_mmcsd3_clkctrl,
-		(*prcm)->cm_l4per_mmcsd4_clkctrl,
-		(*prcm)->cm_l4per_mmcsd5_clkctrl,
-		(*prcm)->cm_l4per_uart1_clkctrl,
-		(*prcm)->cm_l4per_uart2_clkctrl,
-		(*prcm)->cm_l4per_uart4_clkctrl,
-		(*prcm)->cm_wkup_keyboard_clkctrl,
-		(*prcm)->cm_wkup_wdtimer2_clkctrl,
-		(*prcm)->cm_cam_iss_clkctrl,
-		(*prcm)->cm_cam_fdif_clkctrl,
-		(*prcm)->cm_dss_dss_clkctrl,
-		(*prcm)->cm_sgx_sgx_clkctrl,
-		0
-	};
-
-	/* Enable optional functional clock for ISS */
-	setbits_le32((*prcm)->cm_cam_iss_clkctrl, ISS_CLKCTRL_OPTFCLKEN_MASK);
-
-	/* Enable all optional functional clocks of DSS */
-	setbits_le32((*prcm)->cm_dss_dss_clkctrl, DSS_CLKCTRL_OPTFCLKEN_MASK);
-
-	do_enable_clocks(clk_domains_non_essential,
-			 clk_modules_hw_auto_non_essential,
-			 clk_modules_explicit_en_non_essential,
-			 0);
-
-	/* Put camera module in no sleep mode */
-	clrsetbits_le32((*prcm)->cm_cam_clkstctrl,
-			MODULE_CLKCTRL_MODULEMODE_MASK,
-			CD_CLKCTRL_CLKTRCTRL_NO_SLEEP <<
-			MODULE_CLKCTRL_MODULEMODE_SHIFT);
-}
-
 const struct ctrl_ioregs ioregs_omap5430 = {
 	.ctrl_ddrch = DDR_IO_I_34OHM_SR_FASTEST_WD_DQ_NO_PULL_DQS_PULL_DOWN,
 	.ctrl_lpddr2ch = DDR_IO_I_34OHM_SR_FASTEST_WD_CK_CKE_NCS_CA_PULL_DOWN,
@@ -639,9 +583,17 @@ void hw_data_init(void)
 	break;
 
 	case DRA752_ES1_0:
+	case DRA752_ES1_1:
 	*prcm = &dra7xx_prcm;
 	*dplls_data = &dra7xx_dplls;
 	*omap_vcores = &dra752_volts;
+	*ctrl = &dra7xx_ctrl;
+	break;
+
+	case DRA722_ES1_0:
+	*prcm = &dra7xx_prcm;
+	*dplls_data = &dra7xx_dplls;
+	*omap_vcores = &dra722_volts;
 	*ctrl = &dra7xx_ctrl;
 	break;
 
@@ -666,6 +618,8 @@ void get_ioregs(const struct ctrl_ioregs **regs)
 		*regs = &ioregs_omap5432_es2;
 		break;
 	case DRA752_ES1_0:
+	case DRA752_ES1_1:
+	case DRA722_ES1_0:
 		*regs = &ioregs_dra7xx_es1;
 		break;
 

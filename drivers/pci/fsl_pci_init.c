@@ -49,8 +49,13 @@ static void set_inbound_window(volatile pit_t *pi,
 				u64 size)
 {
 	u32 sz = (__ilog2_u64(size) - 1);
-	u32 flag = PIWAR_EN | PIWAR_LOCAL |
-			PIWAR_READ_SNOOP | PIWAR_WRITE_SNOOP;
+#ifdef CONFIG_SYS_FSL_ERRATUM_A005434
+	u32 flag = 0;
+#else
+	u32 flag = PIWAR_LOCAL;
+#endif
+
+	flag |= PIWAR_EN | PIWAR_READ_SNOOP | PIWAR_WRITE_SNOOP;
 
 	out_be32(&pi->pitar, r->phys_start >> 12);
 	out_be32(&pi->piwbar, r->bus_start >> 12);
@@ -510,8 +515,8 @@ void fsl_pci_init(struct pci_controller *hose, struct fsl_pci_info *pci_info)
 
 		/* Print the negotiated PCIe link width */
 		pci_hose_read_config_word(hose, dev, pci_lsr, &temp16);
-		printf("x%d, regs @ 0x%lx\n", (temp16 & 0x3f0 ) >> 4,
-			pci_info->regs);
+		printf("x%d gen%d, regs @ 0x%lx\n", (temp16 & 0x3f0) >> 4,
+		       (temp16 & 0xf), pci_info->regs);
 
 		hose->current_busno++; /* Start scan with secondary */
 		pciauto_prescan_setup_bridge(hose, dev, hose->current_busno);

@@ -21,6 +21,7 @@ SECTIONS
 	. = ALIGN(4);
 	.text	:
 	{
+		*(.vectors)
 		arch/arm/cpu/arm926ejs/spear/start.o	(.text*)
 		*(.text*)
 	}
@@ -49,9 +50,14 @@ SECTIONS
 		__bss_end = .;
 	}
 
-	_end = .;
+	.end :
+	{
+		*(.__end)
+	}
 
-	.dynsym _end : { *(.dynsym) }
+	_image_binary_end = .;
+
+	.dynsym _image_binary_end : { *(.dynsym) }
 	.dynbss : { *(.dynbss) }
 	.dynstr : { *(.dynstr*) }
 	.dynamic : { *(.dynamic*) }

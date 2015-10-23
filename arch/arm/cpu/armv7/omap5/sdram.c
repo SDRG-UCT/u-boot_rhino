@@ -229,6 +229,17 @@ const struct dmm_lisa_map_regs lisa_map_2G_x_2_x_2 = {
 	.is_ma_present	= 0x1
 };
 
+/*
+ * DRA722 EVM EMIF1 CONFIGURATION
+ */
+const struct dmm_lisa_map_regs lisa_map_2G_x_2 = {
+	.dmm_lisa_map_0 = 0x0,
+	.dmm_lisa_map_1 = 0x0,
+	.dmm_lisa_map_2 = 0x80600100,
+	.dmm_lisa_map_3 = 0xFF020100,
+	.is_ma_present	= 0x1
+};
+
 static void emif_get_reg_dump_sdp(u32 emif_nr, const struct emif_regs **regs)
 {
 	switch (omap_revision()) {
@@ -245,6 +256,7 @@ static void emif_get_reg_dump_sdp(u32 emif_nr, const struct emif_regs **regs)
 		*regs = &emif_regs_ddr3_532_mhz_1cs_es2;
 		break;
 	case DRA752_ES1_0:
+	case DRA752_ES1_1:
 		switch (emif_nr) {
 		case 1:
 			*regs = &emif_1_regs_ddr3_532_mhz_1cs_dra_es1;
@@ -254,6 +266,7 @@ static void emif_get_reg_dump_sdp(u32 emif_nr, const struct emif_regs **regs)
 			break;
 		}
 		break;
+	case DRA722_ES1_0:
 	default:
 		*regs = &emif_1_regs_ddr3_532_mhz_1cs_dra_es1;
 	}
@@ -273,8 +286,12 @@ static void emif_get_dmm_regs_sdp(const struct dmm_lisa_map_regs
 		*dmm_lisa_regs = &lisa_map_4G_x_2_x_2;
 		break;
 	case DRA752_ES1_0:
-	default:
+	case DRA752_ES1_1:
 		*dmm_lisa_regs = &lisa_map_2G_x_2_x_2_2G_x_1_x_2;
+		break;
+	case DRA722_ES1_0:
+	default:
+		*dmm_lisa_regs = &lisa_map_2G_x_2;
 	}
 
 }
@@ -460,6 +477,8 @@ static void emif_get_ext_phy_ctrl_const_regs(u32 emif_nr,
 		*size = ARRAY_SIZE(ddr3_ext_phy_ctrl_const_base_es2);
 		break;
 	case DRA752_ES1_0:
+	case DRA752_ES1_1:
+	case DRA722_ES1_0:
 		if (emif_nr == 1) {
 			*regs = dra_ddr3_ext_phy_ctrl_const_base_es1_emif1;
 			*size =
@@ -626,6 +645,8 @@ const struct read_write_regs *get_bug_regs(u32 *iterations)
 			     sizeof(omap5_bug_00339_regs[0]);
 		break;
 	case DRA752_ES1_0:
+	case DRA752_ES1_1:
+	case DRA722_ES1_0:
 		bug_00339_regs_ptr = dra_bug_00339_regs;
 		*iterations = sizeof(dra_bug_00339_regs)/
 			     sizeof(dra_bug_00339_regs[0]);

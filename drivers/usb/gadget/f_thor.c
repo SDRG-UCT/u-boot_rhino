@@ -204,14 +204,14 @@ static long long int download_head(unsigned long long total,
 
 static int download_tail(long long int left, int cnt)
 {
+	struct dfu_entity *dfu_entity = dfu_get_entity(alt_setting_num);
 	void *transfer_buffer = dfu_get_buf();
 	int ret;
 
 	debug("%s: left: %llu cnt: %d\n", __func__, left, cnt);
 
 	if (left) {
-		ret = dfu_write(dfu_get_entity(alt_setting_num),
-				transfer_buffer, left, cnt++);
+		ret = dfu_write(dfu_entity, transfer_buffer, left, cnt++);
 		if (ret) {
 			error("DFU write failed [%d]: left: %llu", ret, left);
 			return ret;
@@ -219,16 +219,15 @@ static int download_tail(long long int left, int cnt)
 	}
 
 	/*
-	 * To store last "packet" DFU storage backend requires dfu_write with
-	 * size parameter equal to 0
+	 * To store last "packet" or write file from buffer to filesystem
+	 * DFU storage backend requires dfu_flush
 	 *
 	 * This also frees memory malloc'ed by dfu_get_buf(), so no explicit
 	 * need fo call dfu_free_buf() is needed.
 	 */
-	ret = dfu_write(dfu_get_entity(alt_setting_num),
-			transfer_buffer, 0, cnt);
+	ret = dfu_flush(dfu_entity, transfer_buffer, 0, cnt);
 	if (ret)
-		error("DFU write failed [%d] cnt: %d", ret, cnt);
+		error("DFU flush failed!");
 
 	return ret;
 }
@@ -307,7 +306,6 @@ static int process_data(void)
 	ALLOC_CACHE_ALIGN_BUFFER(struct rqt_box, rqt, sizeof(struct rqt_box));
 	int ret = -EINVAL;
 
-	memset(rqt, 0, sizeof(rqt));
 	memcpy(rqt, thor_rx_data_buf, sizeof(struct rqt_box));
 
 	debug("+RQT: %d, %d\n", rqt->rqt, rqt->rqt_data);
@@ -614,7 +612,7 @@ static struct usb_request *thor_start_ep(struct usb_ep *ep)
 {
 	struct usb_request *req;
 
-	req = alloc_ep_req(ep, ep->maxpacket);
+	req = alloc_ep_req(ep, THOR_PACKET_SIZE);
 	debug("%s: ep:%p req:%p\n", __func__, ep, req);
 
 	if (!req)
@@ -622,8 +620,6 @@ static struct usb_request *thor_start_ep(struct usb_ep *ep)
 
 	memset(req->buf, 0, req->length);
 	req->complete = thor_rx_tx_complete;
-
-	memset(req->buf, 0x55, req->length);
 
 	return req;
 }
@@ -1001,3 +997,5 @@ int thor_add(struct usb_configuration *c)
 	debug("%s:\n", __func__);
 	return thor_func_init(c);
 }
+
+DECLARE_GADGET_BIND_CALLBACK(usb_dnl_thor, thor_add);
