@@ -8,7 +8,7 @@
 VERSION = 2014
 PATCHLEVEL = 10
 SUBLEVEL =
-EXTRAVERSION = -rc1
+EXTRAVERSION = -rc2
 NAME =
 
 # *DOCUMENTATION*
@@ -107,10 +107,6 @@ ifeq ($(KBUILD_SRC),)
 # Do we want to locate output files in a separate directory?
 ifeq ("$(origin O)", "command line")
   KBUILD_OUTPUT := $(O)
-endif
-
-ifeq ("$(origin W)", "command line")
-  export KBUILD_ENABLE_EXTRA_GCC_CHECKS := $(W)
 endif
 
 # That's our default target when none is given on the command line
@@ -441,12 +437,12 @@ ifeq ($(mixed-targets),1)
 # We're called with mixed targets (*config and build targets).
 # Handle them one by one.
 
-PHONY += $(MAKECMDGOALS) build-one-by-one
+PHONY += $(MAKECMDGOALS) __build_one_by_one
 
-$(MAKECMDGOALS): build-one-by-one
+$(filter-out __build_one_by_one, $(MAKECMDGOALS)): __build_one_by_one
 	@:
 
-build-one-by-one:
+__build_one_by_one:
 	$(Q)set -e; \
 	for i in $(MAKECMDGOALS); do \
 		$(MAKE) -f $(srctree)/Makefile $$i; \
@@ -462,10 +458,10 @@ KBUILD_DEFCONFIG := sandbox_defconfig
 export KBUILD_DEFCONFIG KBUILD_KCONFIG
 
 config: scripts_basic outputmakefile FORCE
-	+$(Q)$(PYTHON) $(srctree)/scripts/multiconfig.py $@
+	(Q)$(MAKE) $(build)=scripts/kconfig $@
 
 %config: scripts_basic outputmakefile FORCE
-	+$(Q)$(PYTHON) $(srctree)/scripts/multiconfig.py $@
+	+$(Q)$(CONFIG_SHELL) $(srctree)/scripts/multiconfig.sh $@
 
 else
 # ===========================================================================
@@ -533,7 +529,11 @@ else
 include/config/auto.conf: ;
 endif # $(dot-config)
 
-KBUILD_CFLAGS += -Os #-fomit-frame-pointer
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+KBUILD_CFLAGS	+= -Os
+else
+KBUILD_CFLAGS	+= -O2
+endif
 
 ifdef BUILD_TAG
 KBUILD_CFLAGS += -DBUILD_TAG='"$(BUILD_TAG)"'
@@ -568,6 +568,8 @@ KBUILD_CPPFLAGS += -DCONFIG_SYS_TEXT_BASE=$(CONFIG_SYS_TEXT_BASE)
 endif
 
 export CONFIG_SYS_TEXT_BASE
+
+include $(srctree)/scripts/Makefile.extrawarn
 
 # Add user supplied CPPFLAGS, AFLAGS and CFLAGS as the last assignments
 KBUILD_CPPFLAGS += $(KCPPFLAGS)
@@ -802,14 +804,15 @@ u-boot.hex u-boot.srec: u-boot FORCE
 
 OBJCOPYFLAGS_u-boot.bin := -O binary
 
-binary_size_check: u-boot.bin System.map FORCE
-	@file_size=`stat -c %s u-boot.bin` ; \
-	map_size=$(shell cat System.map | \
+binary_size_check: u-boot.bin FORCE
+	@file_size=$(shell wc -c u-boot.bin | awk '{print $$1}') ; \
+	map_size=$(shell cat u-boot.map | \
 		awk '/_image_copy_start/ {start = $$1} /_image_binary_end/ {end = $$1} END {if (start != "" && end != "") print "ibase=16; " toupper(end) " - " toupper(start)}' \
+		| sed 's/0X//g' \
 		| bc); \
 	if [ "" != "$$map_size" ]; then \
 		if test $$map_size -ne $$file_size; then \
-			echo "System.map shows a binary size of $$map_size" >&2 ; \
+			echo "u-boot.map shows a binary size of $$map_size" >&2 ; \
 			echo "  but u-boot.bin shows $$file_size" >&2 ; \
 			exit 1; \
 		fi \
@@ -1005,13 +1008,17 @@ quiet_cmd_u-boot__ ?= LD      $@
       --start-group $(u-boot-main) --end-group                 \
       $(PLATFORM_LIBS) -Map u-boot.map
 
-u-boot:	$(u-boot-init) $(u-boot-main) u-boot.lds
-	$(call if_changed,u-boot__)
-ifeq ($(CONFIG_KALLSYMS),y)
+quiet_cmd_smap = GEN     common/system_map.o
+cmd_smap = \
 	smap=`$(call SYSTEM_MAP,u-boot) | \
 		awk '$$2 ~ /[tTwW]/ {printf $$1 $$3 "\\\\000"}'` ; \
 	$(CC) $(c_flags) -DSYSTEM_MAP="\"$${smap}\"" \
 		-c $(srctree)/common/system_map.c -o common/system_map.o
+
+u-boot:	$(u-boot-init) $(u-boot-main) u-boot.lds
+	$(call if_changed,u-boot__)
+ifeq ($(CONFIG_KALLSYMS),y)
+	$(call cmd,smap)
 	$(call cmd,u-boot__) common/system_map.o
 endif
 
@@ -1286,6 +1293,7 @@ distclean: mrproper
 		-o -name '.*.rej' -o -name '*%' -o -name 'core' \
 		-o -name '*.pyc' \) \
 		-type f -print | xargs rm -f
+	@rm -f boards.cfg
 
 backup:
 	F=`basename $(srctree)` ; cd .. ; \
