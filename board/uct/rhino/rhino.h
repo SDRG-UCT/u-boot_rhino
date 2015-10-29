@@ -8,19 +8,7 @@
  * Copyright (C) 2010
  * Texas Instruments Incorporated - http://www.ti.com/
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _RHINO_H_
@@ -73,10 +61,8 @@ const omap3_sysinfo sysinfo = {
  * M0   - Mode 0
  * The commented string gives the final mux configuration for that pin
  */
-#define MUX_RHINO()\
-	\
-	/* SDRAM Controller */\
-	\
+#define MUX_RHINO() \
+	/* SDRC */\
 	MUX_VAL(CP(SDRC_D0),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(SDRC_D1),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(SDRC_D2),		(IEN  | PTD | DIS | M0)) \
@@ -119,11 +105,11 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(SDRC_DQS2N),		(IEN  | PTD | EN  | M0)) \
 	MUX_VAL(CP(SDRC_DQS3N),		(IEN  | PTD | EN  | M0)) \
 	MUX_VAL(CP(SDRC_CKE0),		(M0)) \
-	MUX_VAL(CP(STRBEN_DLY0),	(IEN  | PTD | EN  | M0)) /*sdrc_strben_dly0*/\
-	MUX_VAL(CP(STRBEN_DLY1),	(IEN  | PTD | EN  | M0)) /*sdrc_strben_dly1*/\
-	\
+	/*sdrc_strben_dly0*/\
+	MUX_VAL(CP(STRBEN_DLY0),	(IEN  | PTD | EN  | M0)) \
+	/*sdrc_strben_dly1*/\
+	MUX_VAL(CP(STRBEN_DLY1),	(IEN  | PTD | EN  | M0)) \
 	/* GPMC */\
-	\
 	MUX_VAL(CP(GPMC_A1),		(IDIS | PTU | EN  | M0)) \
 	MUX_VAL(CP(GPMC_A2),		(IDIS | PTU | EN  | M0)) \
 	MUX_VAL(CP(GPMC_A3),		(IDIS | PTU | EN  | M0)) \
@@ -169,9 +155,7 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(GPMC_WAIT1),		(IEN  | PTU | EN  | M0)) \
 	MUX_VAL(CP(GPMC_WAIT2),		(IEN  | PTU | EN  | M0)) \
 	MUX_VAL(CP(GPMC_WAIT3),		(IDIS | PTU | DIS | M4)) /*GPIO_65*/\
-	\
 	/* DSS */\
-	\
 	MUX_VAL(CP(DSS_PCLK),		(IDIS | PTD | DIS | M0)) \
 	MUX_VAL(CP(DSS_HSYNC),		(IDIS | PTD | DIS | M0)) \
 	MUX_VAL(CP(DSS_VSYNC),		(IDIS | PTD | DIS | M0)) \
@@ -274,18 +258,14 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(UART3_RTS_SD),	(IDIS | PTD | DIS | M0)) \
 	MUX_VAL(CP(UART3_RX_IRRX),	(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(UART3_TX_IRTX),	(IDIS | PTD | DIS | M0)) \
-	\
-	/* I2C (1 to 3) */\
-	\
-	MUX_VAL(CP(I2C1_SCL),		(IEN  | PTU | DIS | M0)) \
-	MUX_VAL(CP(I2C1_SDA),		(IEN  | PTU | DIS | M0)) \
-	MUX_VAL(CP(I2C2_SCL),		(IEN  | PTU | DIS | M0)) \
-	MUX_VAL(CP(I2C2_SDA),		(IEN  | PTU | DIS | M0)) \
-	MUX_VAL(CP(I2C3_SCL),		(IEN  | PTU | DIS | M0)) \
-	MUX_VAL(CP(I2C3_SDA),		(IEN  | PTU | DIS | M0)) \
-	\
-	/* McSPI1 */\
-	\
+	/* I2C */\
+	MUX_VAL(CP(I2C1_SCL),		(IEN  | PTU | EN  | M0)) \
+	MUX_VAL(CP(I2C1_SDA),		(IEN  | PTU | EN  | M0)) \
+	MUX_VAL(CP(I2C2_SCL),		(IEN  | PTU | EN  | M0)) \
+	MUX_VAL(CP(I2C2_SDA),		(IEN  | PTU | EN  | M0)) \
+	MUX_VAL(CP(I2C3_SCL),		(IEN  | PTU | EN  | M0)) \
+	MUX_VAL(CP(I2C3_SDA),		(IEN  | PTU | EN  | M0)) \
+	/* McSPI */\
 	MUX_VAL(CP(MCSPI1_CLK),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(MCSPI1_SIMO),	(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(MCSPI1_SOMI),	(IEN  | PTD | DIS | M0)) \
@@ -319,16 +299,15 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(CCDC_DATA7),		(IDIS | PTD | DIS | M4)) /*GPIO_106*/\
 	\
 	/* RMII */\
-	\
-	MUX_VAL(CP(RMII_MDIO_DATA),	(IEN  | PTD | DIS | M0)) \
-	MUX_VAL(CP(RMII_MDIO_CLK),	(IDIS | PTD | DIS | M0)) \
-	MUX_VAL(CP(RMII_RXD0)	,	(IEN  | PTD | DIS | M0)) \
-	MUX_VAL(CP(RMII_RXD1),		(IEN  | PTD | DIS | M0)) \
-	MUX_VAL(CP(RMII_CRS_DV),	(IEN  | PTD | DIS | M0)) \
-	MUX_VAL(CP(RMII_RXER),		(IEN  | PTD | DIS | M0)) \
-	MUX_VAL(CP(RMII_TXD0),		(IDIS | PTD | DIS | M0)) \
-	MUX_VAL(CP(RMII_TXD1),		(IDIS | PTD | DIS | M0)) \
-	MUX_VAL(CP(RMII_TXEN),		(IDIS | PTD | DIS | M0)) \
+	MUX_VAL(CP(RMII_MDIO_DATA),	(IEN  |  M0)) \
+	MUX_VAL(CP(RMII_MDIO_CLK),	(M0)) \
+	MUX_VAL(CP(RMII_RXD0)	,	(IEN  | PTD | M0)) \
+	MUX_VAL(CP(RMII_RXD1),		(IEN  | PTD | M0)) \
+	MUX_VAL(CP(RMII_CRS_DV),	(IEN  | PTD | M0)) \
+	MUX_VAL(CP(RMII_RXER),		(PTD | M0)) \
+	MUX_VAL(CP(RMII_TXD0),		(PTD | M0)) \
+	MUX_VAL(CP(RMII_TXD1),		(PTD | M0)) \
+	MUX_VAL(CP(RMII_TXEN),		(PTD | M0)) \
 	MUX_VAL(CP(RMII_50MHZ_CLK),	(IEN  | PTD | EN  | M0)) \
 	\
 	/* HECC : Used as GPIOs for User LEDs*/\
@@ -365,7 +344,6 @@ const omap3_sysinfo sysinfo = {
 	MUX_VAL(CP(SYS_CLKOUT2),	(IEN  | PTU | DIS | M4)) /*GPIO_186*/\
 	\
 	/* JTAG */\
-	\
 	MUX_VAL(CP(JTAG_nTRST),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(JTAG_TCK),		(IEN  | PTD | DIS | M0)) \
 	MUX_VAL(CP(JTAG_TMS),		(IEN  | PTD | DIS | M0)) \

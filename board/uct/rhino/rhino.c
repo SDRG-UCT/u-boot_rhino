@@ -12,11 +12,9 @@
  */
 
 #include <common.h>
-#include <asm/gpio.h>
 #include <asm/io.h>
 #include <asm/omap_musb.h>
 #include <asm/arch/am35x_def.h>
-#include <asm/arch/gpio.h>
 #include <asm/arch/mem.h>
 #include <asm/arch/mux.h>
 #include <asm/arch/sys_proto.h>
@@ -24,6 +22,7 @@
 #include <asm/arch/musb.h>
 #include <asm/mach-types.h>
 #include <asm/errno.h>
+#include <asm/gpio.h>
 #include <linux/usb/ch9.h>
 #include <linux/usb/gadget.h>
 #include <linux/usb/musb.h>
@@ -35,7 +34,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#ifdef CONFIG_FPGA
+#if defined(CONFIG_FPGA) && !defined(CONFIG_SPL_BUILD)
 
 /* Define FPGA_DEBUG to get debug printf's */
 #ifdef  FPGA_DEBUG
@@ -188,7 +187,7 @@ int fpga_bwr_fn(const void *buf, size_t bsize, int flush, int cookie)
 	return 1;
 }
 
-Xilinx_Spartan3_Slave_Serial_fns rhino_fpga_fns = {
+xilinx_spartan3_slave_serial_fns rhino_fpga_fns = {
 	fpga_pre_fn,
 	fpga_pgm_fn,
 	fpga_clk_fn,
@@ -199,7 +198,7 @@ Xilinx_Spartan3_Slave_Serial_fns rhino_fpga_fns = {
 	fpga_bwr_fn,
 };
 
-Xilinx_desc fpga = XILINX_XC6SLX4_DESC(slave_serial,
+xilinx_desc fpga = XILINX_XC6SLX4_DESC(slave_serial,
 		(void *)&rhino_fpga_fns, 0);
 #endif
 
@@ -211,7 +210,7 @@ int board_init(void)
 {
 	gpmc_init(); /* in SRAM or SDRAM, finish GPMC */
 
-#ifdef CONFIG_FPGA
+#if defined(CONFIG_FPGA) && !defined(CONFIG_SPL_BUILD)
 	/* Configure GPMC for FPGA memory accesses */
 	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[1], FPGA_CS1_BASE, GPMC_SIZE_64M);
 	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[2], FPGA_CS2_BASE, GPMC_SIZE_128M);
@@ -221,11 +220,11 @@ int board_init(void)
 	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[6], FPGA_CS6_BASE, GPMC_SIZE_128M);
 	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[7], FPGA_CS7_BASE, GPMC_SIZE_128M);
 
-	fpga_init();
-	fpga_add(fpga_xilinx, &fpga);
+	//fpga_init();
+	//fpga_add(fpga_xilinx, &fpga);
 
-	gpio_request(FPGA_DONE, "FPGA_DONE");
-	gpio_direction_input(FPGA_DONE);
+	//gpio_request(FPGA_DONE, "FPGA_DONE");
+	//gpio_direction_input(FPGA_DONE);
 
 #endif
 
@@ -284,11 +283,13 @@ static void am3517_evm_musb_init(void)
 #endif
 
 /*
- *  * Routine: misc_init_r
- *   * Description: Init i2c, ethernet, etc... (done here so udelay works)
- *    */
+ * Routine: misc_init_r
+ * Description: Init i2c, ethernet, etc... (done here so udelay works)
+ */
 int misc_init_r(void)
 {
+	volatile unsigned int ctr;
+
 #ifdef CONFIG_SYS_I2C_OMAP34XX
 	i2c_init(CONFIG_SYS_OMAP24_I2C_SPEED, CONFIG_SYS_OMAP24_I2C_SLAVE);
 #endif
@@ -296,6 +297,26 @@ int misc_init_r(void)
 	dieid_num_r();
 
 	am3517_evm_musb_init();
+
+	/* activate PHY reset *
+	gpio_direction_output(65, 0);
+	gpio_set_value(65, 0);
+
+	ctr  = 0;
+	do {
+		udelay(1000);
+		ctr++;
+	} while (ctr < 300);*/
+
+	/* deactivate PHY reset *
+	gpio_set_value(65, 1);*/
+
+	/* allow the PHY to stabilize and settle down *
+	ctr = 0;
+	do {
+		udelay(1000);
+		ctr++;
+	} while (ctr < 300);*/
 
 	return 0;
 }
