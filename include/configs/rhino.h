@@ -34,6 +34,8 @@
 #include <asm/arch/cpu.h>		/* get chip and board defs */
 #include <asm/arch/omap3.h>
 
+#define CONFIG_NAND
+
 /*
  * Display CPU and Board information
  */
@@ -322,15 +324,12 @@
 #define CONFIG_SYS_MAX_FLASH_BANKS	2	/* max number of flash banks */
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 2 sectors */
 
-#if defined(CONFIG_CMD_NAND)
 #define CONFIG_SYS_FLASH_BASE		PISMO1_NAND_BASE
-#endif
 
 /* Monitor at start of flash */
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_FLASH_BASE
 
 #define CONFIG_NAND_OMAP_GPMC
-#define GPMC_NAND_ECC_LP_x16_LAYOUT	1
 #define CONFIG_ENV_IS_IN_NAND		1
 #define SMNAND_ENV_OFFSET		0x260000 /* environment starts here */
 
