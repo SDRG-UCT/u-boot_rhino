@@ -67,6 +67,9 @@
  * Hardware drivers
  */
 
+/*
+ * OMAP GPIO configuration
+ */
 #define CONFIG_OMAP_GPIO
 
 #define CONFIG_SPI
@@ -171,6 +174,18 @@
 #define CONFIG_SYS_OMAP24_I2C_SPEED	100000
 #define CONFIG_SYS_OMAP24_I2C_SLAVE	1
 #define CONFIG_SYS_I2C_OMAP34XX
+
+/*
+ * Ethernet
+ */
+#define CONFIG_DRIVER_TI_EMAC
+#define CONFIG_DRIVER_TI_EMAC_USE_RMII
+#define CONFIG_MII
+#define CONFIG_BOOTP_DEFAULT
+#define CONFIG_BOOTP_DNS
+#define CONFIG_BOOTP_DNS2
+#define CONFIG_BOOTP_SEND_HOSTNAME
+#define CONFIG_NET_RETRY_COUNT		10
 
 /*
  * Board NAND Info.
@@ -315,16 +330,15 @@
 
 /* **** PISMO SUPPORT *** */
 
-/* Configure the PISMO */
-#define PISMO1_NAND_SIZE		GPMC_SIZE_128M
-#define PISMO1_ONEN_SIZE		GPMC_SIZE_128M
 
 #define CONFIG_SYS_MAX_FLASH_SECT	520	/* max number of sectors */
 						/* on one chip */
 #define CONFIG_SYS_MAX_FLASH_BANKS	2	/* max number of flash banks */
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 2 sectors */
 
-#define CONFIG_SYS_FLASH_BASE		PISMO1_NAND_BASE
+#if defined(CONFIG_CMD_NAND)
+#define CONFIG_SYS_FLASH_BASE		NAND_BASE
+#endif
 
 /* Monitor at start of flash */
 #define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_FLASH_BASE
@@ -351,24 +365,6 @@
 /* use flash_info[2] */
 #define CONFIG_SYS_JFFS2_FIRST_BANK	CONFIG_SYS_MAX_FLASH_BANKS
 #define CONFIG_SYS_JFFS2_NUM_BANKS	1
-
-/*-----------------------------------------------------
- * ethernet support for AM3517 EVM
- *------------------------------------------------
- */
-#if defined(CONFIG_CMD_NET)
-#define CONFIG_SYS_DCACHE_OFF		/* Driver not D-CACHE safe */
-#define CONFIG_DRIVER_TI_EMAC
-#define CONFIG_DRIVER_TI_EMAC_USE_RMII
-#define CONFIG_MII
-#define CONFIG_EMAC_MDIO_PHY_NUM	0
-#define CONFIG_BOOTP_DEFAULT
-#define CONFIG_BOOTP_DNS
-#define CONFIG_BOOTP_DNS2
-#define CONFIG_BOOTP_SEND_HOSTNAME
-#define CONFIG_NET_RETRY_COUNT		10
-#define CONFIG_NET_MULTI
-#endif
 
 #define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
 #define CONFIG_SYS_INIT_RAM_ADDR	0x4020f800
