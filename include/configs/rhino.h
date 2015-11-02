@@ -19,7 +19,7 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define DEBUG
+#undef DEBUG
 
 /*
  * High Level Configuration Options
@@ -381,8 +381,8 @@
 
 #define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR	0x8AC /* address ? */
 #define CONFIG_SYS_U_BOOT_MAX_SIZE_SECTORS	0x200 /* 256 KB */
-#define CONFIG_SYS_MMC_SD_FAT_BOOT_PARTITION	1
-#define CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME	"u-boot.img"
+#define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION	1
+#define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME	"u-boot.img"
 
 #define CONFIG_SPL_LIBCOMMON_SUPPORT
 #define CONFIG_SPL_LIBDISK_SUPPORT
