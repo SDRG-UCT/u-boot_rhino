@@ -33,8 +33,6 @@
 #include <asm/arch/cpu.h>		/* get chip and board defs */
 #include <asm/arch/omap3.h>
 
-#define CONFIG_NAND
-
 /*
  * Display CPU and Board information
  */
