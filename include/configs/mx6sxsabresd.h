@@ -159,7 +159,7 @@
 /* MMC Configuration */
 #define CONFIG_FSL_ESDHC
 #define CONFIG_FSL_USDHC
-#define CONFIG_SYS_FSL_ESDHC_ADDR	0
+#define CONFIG_SYS_FSL_ESDHC_ADDR	USDHC4_BASE_ADDR
 
 #define CONFIG_MMC
 #define CONFIG_CMD_MMC
@@ -197,6 +197,16 @@
 
 #define CONFIG_PHYLIB
 #define CONFIG_PHY_ATHEROS
+
+#define CONFIG_CMD_PCI
+#ifdef CONFIG_CMD_PCI
+#define CONFIG_PCI
+#define CONFIG_PCI_PNP
+#define CONFIG_PCI_SCAN_SHOW
+#define CONFIG_PCIE_IMX
+#define CONFIG_PCIE_IMX_PERST_GPIO	IMX_GPIO_NR(2, 0)
+#define CONFIG_PCIE_IMX_POWER_GPIO	IMX_GPIO_NR(2, 1)
+#endif
 
 /* FLASH and environment organization */
 #define CONFIG_SYS_NO_FLASH

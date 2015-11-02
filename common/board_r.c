@@ -664,7 +664,7 @@ int initr_mem(void)
 	/* Also take the logbuffer into account (pram is in kB) */
 	pram += (LOGBUFF_LEN + LOGBUFF_OVERHEAD) / 1024;
 # endif
-	sprintf(memsz, "%ldk", (gd->ram_size / 1024) - pram);
+	sprintf(memsz, "%ldk", (long int) ((gd->ram_size / 1024) - pram));
 	setenv("mem", memsz);
 
 	return 0;
@@ -715,6 +715,18 @@ init_fnc_t init_sequence_r[] = {
 	/* TODO: could x86/PPC have this also perhaps? */
 #ifdef CONFIG_ARM
 	initr_caches,
+#endif
+	initr_reloc_global_data,
+#if defined(CONFIG_SYS_INIT_RAM_LOCK) && defined(CONFIG_E500)
+	initr_unlock_ram_in_cache,
+#endif
+	initr_barrier,
+	initr_malloc,
+	bootstage_relocate,
+#ifdef CONFIG_DM
+	initr_dm,
+#endif
+#ifdef CONFIG_ARM
 	board_init,	/* Setup chipselects */
 #endif
 	/*
@@ -726,7 +738,7 @@ init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_CLOCKS
 	set_cpu_clk_info, /* Setup clock information */
 #endif
-	initr_reloc_global_data,
+	stdio_init_tables,
 	initr_serial,
 	initr_announce,
 	INIT_FUNC_WATCHDOG_RESET
@@ -750,9 +762,6 @@ init_fnc_t init_sequence_r[] = {
 #ifdef CONFIG_SYS_DELAYED_ICACHE
 	initr_icache_enable,
 #endif
-#if defined(CONFIG_SYS_INIT_RAM_LOCK) && defined(CONFIG_E500)
-	initr_unlock_ram_in_cache,
-#endif
 #if defined(CONFIG_PCI) && defined(CONFIG_SYS_EARLY_PCI_INIT)
 	/*
 	 * Do early PCI configuration _before_ the flash gets initialised,
@@ -762,12 +771,6 @@ init_fnc_t init_sequence_r[] = {
 #endif
 #ifdef CONFIG_WINBOND_83C553
 	initr_w83c553f,
-#endif
-	initr_barrier,
-	initr_malloc,
-	bootstage_relocate,
-#ifdef CONFIG_DM
-	initr_dm,
 #endif
 #ifdef CONFIG_ARCH_EARLY_INIT_R
 	arch_early_init_r,
@@ -818,7 +821,7 @@ init_fnc_t init_sequence_r[] = {
 	 */
 	initr_pci,
 #endif
-	stdio_init,
+	stdio_add_devices,
 	initr_jumptable,
 #ifdef CONFIG_API
 	initr_api,
@@ -912,7 +915,7 @@ void board_init_r(gd_t *new_gd, ulong dest_addr)
 	int i;
 #endif
 
-#ifndef CONFIG_X86
+#if !defined(CONFIG_X86) && !defined(CONFIG_ARM) && !defined(CONFIG_ARM64)
 	gd = new_gd;
 #endif
 
