@@ -25,7 +25,6 @@
  * High Level Configuration Options
  */
 #define CONFIG_OMAP		1	/* in a TI OMAP core */
-#define CONFIG_OMAP34XX		1	/* which is a 34XX */
 #define CONFIG_RHINO		1	/* working with UCT RHINO */
 #define CONFIG_OMAP_COMMON
 
@@ -329,8 +328,6 @@
  */
 
 /* **** PISMO SUPPORT *** */
-
-
 #define CONFIG_SYS_MAX_FLASH_SECT	520	/* max number of sectors */
 						/* on one chip */
 #define CONFIG_SYS_MAX_FLASH_BANKS	2	/* max number of flash banks */
