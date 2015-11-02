@@ -7,6 +7,10 @@ config TARGET_AM3517_EVM
 	bool "AM3517 EVM"
 	select SUPPORT_SPL
 
+config TARGET_RHINO
+	bool "RHINO"
+	select SUPPORT_SPL
+
 config TARGET_MT_VENTOUX
 	bool "TeeJet Mt.Ventoux"
 	select SUPPORT_SPL
@@ -97,6 +101,7 @@ config SYS_SOC
 	default "omap3"
 
 source "board/logicpd/am3517evm/Kconfig"
+source "board/uct/rhino/Kconfig"
 source "board/teejet/mt_ventoux/Kconfig"
 source "board/ti/sdp3430/Kconfig"
 source "board/ti/beagle/Kconfig"
