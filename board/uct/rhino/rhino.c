@@ -298,25 +298,25 @@ int misc_init_r(void)
 
 	am3517_evm_musb_init();
 
-	/* activate PHY reset *
-	gpio_direction_output(65, 0);
-	gpio_set_value(65, 0);
+	/* activate PHY reset */
+	//gpio_direction_output(65, 0);
+	//gpio_set_value(65, 0);
 
 	ctr  = 0;
 	do {
 		udelay(1000);
 		ctr++;
-	} while (ctr < 300);*/
+	} while (ctr < 300);
 
-	/* deactivate PHY reset *
-	gpio_set_value(65, 1);*/
+	/* deactivate PHY reset */
+	//gpio_set_value(65, 1);
 
-	/* allow the PHY to stabilize and settle down *
+	/* allow the PHY to stabilize and settle down */
 	ctr = 0;
 	do {
 		udelay(1000);
 		ctr++;
-	} while (ctr < 300);*/
+	} while (ctr < 300);
 
 	return 0;
 }
