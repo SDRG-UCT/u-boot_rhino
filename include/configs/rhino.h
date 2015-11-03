@@ -19,8 +19,6 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#undef DEBUG
-
 /*
  * High Level Configuration Options
  */
@@ -37,6 +35,13 @@
 
 #include <asm/arch/cpu.h>		/* get chip and board defs */
 #include <asm/arch/omap.h>
+
+#ifndef CONFIG_SPL_BUILD
+#undef DEBUG
+#define CONFIG_DM
+#define CONFIG_CMD_DM
+#define CONFIG_DM_GPIO
+#endif
 
 /*
  * Display CPU and Board information
@@ -75,6 +80,11 @@
  * OMAP GPIO configuration
  */
 #define CONFIG_OMAP_GPIO
+#define CONFIG_OMAP3_GPIO_3
+#define CONFIG_OMAP3_GPIO_4
+#define CONFIG_OMAP3_GPIO_5
+
+#define CONFIG_OMAP3_SPI
 
 /*
  * NS16550 Configuration
@@ -136,8 +146,10 @@
 
 #endif /* CONFIG_USB_MUSB_AM35X */
 
-#undef CONFIG_FPGA
-#undef FPGA_DEBUG
+#ifdef CONFIG_CMD_FPGA
+
+#define CONFIG_FPGA
+#define FPGA_DEBUG
 #define CONFIG_FPGA_XILINX
 #define CONFIG_FPGA_SPARTAN3
 #define CONFIG_SYS_FPGA_PROG_FEEDBACK
@@ -145,6 +157,8 @@
 #define CONFIG_MAX_FPGA_DEVICES 1
 #define CONFIG_FPGA_DELAY() udelay(1)
 #define CONFIG_SYS_FPGA_PROG_FEEDBACK
+
+#endif /* CONFIG_CMD_FPGA */
 
 /* commands to include */
 #define CONFIG_CMD_EXT2		/* EXT2 Support			*/
@@ -155,6 +169,7 @@
 #define CONFIG_CMD_MMC		/* MMC support			*/
 #define CONFIG_CMD_NAND		/* NAND support			*/
 #define CONFIG_CMD_DHCP
+#define CONFIG_CMD_GPIO
 #define CONFIG_CMD_PING
 
 
