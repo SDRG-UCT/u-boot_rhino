@@ -27,6 +27,7 @@
 #define CONFIG_OMAP		1	/* in a TI OMAP core */
 #define CONFIG_RHINO		1	/* working with UCT RHINO */
 #define CONFIG_OMAP_COMMON
+#define CONFIG_SYS_GENERIC_BOARD
 /* Common ARM Erratas */
 #define CONFIG_ARM_ERRATA_454179
 #define CONFIG_ARM_ERRATA_430973
@@ -48,6 +49,8 @@
 #define V_SCLK			(V_OSCK >> 1)
 
 #define CONFIG_MISC_INIT_R
+
+#define CONFIG_OF_LIBFDT
 
 #define CONFIG_CMDLINE_TAG		1	/* enable passing of ATAGs */
 #define CONFIG_SETUP_MEMORY_TAGS	1
@@ -72,9 +75,6 @@
  * OMAP GPIO configuration
  */
 #define CONFIG_OMAP_GPIO
-
-#define CONFIG_SPI
-#define CONFIG_OMAP3_SPI
 
 /*
  * NS16550 Configuration
@@ -105,16 +105,16 @@
 
 /*
  * USB configuration
- * Enable CONFIG_MUSB_HOST for Host functionalities MSC, keyboard
- * Enable CONFIG_MUSB_GADGET for Device functionalities.
+ * Enable CONFIG_USB_MUSB_HOST for Host functionalities MSC, keyboard
+ * Enable CONFIG_USB_MUSB_GADGET for Device functionalities.
  */
 #define CONFIG_USB_MUSB_AM35X
-#define CONFIG_MUSB_HOST
-#define CONFIG_MUSB_PIO_ONLY
+#define CONFIG_USB_MUSB_HOST
+#define CONFIG_USB_MUSB_PIO_ONLY
 
 #ifdef CONFIG_USB_MUSB_AM35X
 
-#ifdef CONFIG_MUSB_HOST
+#ifdef CONFIG_USB_MUSB_HOST
 #define CONFIG_CMD_USB
 
 #define CONFIG_USB_STORAGE
@@ -126,13 +126,13 @@
 #define CONFIG_PREBOOT "usb start"
 #endif /* CONFIG_USB_KEYBOARD */
 
-#endif /* CONFIG_MUSB_HOST */
+#endif /* CONFIG_USB_MUSB_HOST */
 
-#ifdef CONFIG_MUSB_GADGET
+#ifdef CONFIG_USB_MUSB_GADGET
 #define CONFIG_USB_GADGET_DUALSPEED
 #define CONFIG_USB_ETHER
 #define CONFIG_USB_ETH_RNDIS
-#endif /* CONFIG_MUSB_GADGET */
+#endif /* CONFIG_USB_MUSB_GADGET */
 
 #endif /* CONFIG_USB_MUSB_AM35X */
 
@@ -147,28 +147,16 @@
 #define CONFIG_SYS_FPGA_PROG_FEEDBACK
 
 /* commands to include */
-#include <config_cmd_default.h>
-
 #define CONFIG_CMD_EXT2		/* EXT2 Support			*/
 #define CONFIG_CMD_FAT		/* FAT support			*/
 #define CONFIG_CMD_JFFS2	/* JFFS2 Support		*/
 
 #define CONFIG_CMD_I2C		/* I2C serial bus support	*/
-#define CONFIG_CMD_SPI		/* SPI serial bus support	*/
 #define CONFIG_CMD_MMC		/* MMC support			*/
 #define CONFIG_CMD_NAND		/* NAND support			*/
-#define CONFIG_CMD_GPIO
-
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_DHCP
-#define CONFIG_CMD_DNS
-#undef CONFIG_CMD_NFS
 #define CONFIG_CMD_PING
 
-#undef CONFIG_CMD_FLASH		/* flinfo, erase, protect	*/
-#define CONFIG_CMD_FPGA		/* FPGA configuration Support	*/
-#undef CONFIG_CMD_IMI		/* iminfo			*/
-#undef CONFIG_CMD_IMLS		/* List all found images	*/
 
 #define CONFIG_SYS_NO_FLASH
 #define CONFIG_SYS_I2C
@@ -288,11 +276,8 @@
 /*
  * Miscellaneous configurable options
  */
-#define V_PROMPT			"RHINO # "
-
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
-#define CONFIG_SYS_PROMPT		V_PROMPT
 #define CONFIG_SYS_CBSIZE		512	/* Console I/O Buffer Size */
 /* Print Buffer Size */
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
