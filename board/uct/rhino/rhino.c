@@ -220,11 +220,11 @@ int board_init(void)
 	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[6], FPGA_CS6_BASE, GPMC_SIZE_128M);
 	enable_gpmc_cs_config(gpmc_fpga_cfg, &gpmc_cfg->cs[7], FPGA_CS7_BASE, GPMC_SIZE_128M);
 
-	//fpga_init();
-	//fpga_add(fpga_xilinx, &fpga);
+	fpga_init();
+	fpga_add(fpga_xilinx, &fpga);
 
-	//gpio_request(FPGA_DONE, "FPGA_DONE");
-	//gpio_direction_input(FPGA_DONE);
+	gpio_request(FPGA_DONE, "FPGA_DONE");
+	gpio_direction_input(FPGA_DONE);
 
 #endif
 
@@ -299,8 +299,9 @@ int misc_init_r(void)
 	am3517_evm_musb_init();
 
 	/* activate PHY reset */
-	//gpio_direction_output(65, 0);
-	//gpio_set_value(65, 0);
+	gpio_request(65, "nETH_RESET");
+	gpio_direction_output(65, 0);
+	gpio_set_value(65, 0);
 
 	ctr  = 0;
 	do {
@@ -309,7 +310,7 @@ int misc_init_r(void)
 	} while (ctr < 300);
 
 	/* deactivate PHY reset */
-	//gpio_set_value(65, 1);
+	gpio_set_value(65, 1);
 
 	/* allow the PHY to stabilize and settle down */
 	ctr = 0;
