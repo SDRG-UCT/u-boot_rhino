@@ -141,7 +141,7 @@ int fpga_post_fn(int cookie)
 	return 0;
 }
 
-int fpga_bwr_fn(const void *buf, size_t bsize, int flush, int cookie)
+int fpga_bwr_fn(void *buf, size_t bsize, int flush, int cookie)
 {
 	PRINTF("%s:%d: FPGA BLOCK WRITE cookie=%d\n", __func__, __LINE__, cookie);
 
