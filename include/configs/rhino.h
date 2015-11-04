@@ -36,13 +36,6 @@
 #include <asm/arch/cpu.h>		/* get chip and board defs */
 #include <asm/arch/omap.h>
 
-#ifndef CONFIG_SPL_BUILD
-#undef DEBUG
-#define CONFIG_DM
-#define CONFIG_CMD_DM
-#define CONFIG_DM_GPIO
-#endif
-
 /*
  * Display CPU and Board information
  */
@@ -76,6 +69,8 @@
  * Hardware drivers
  */
 
+#ifndef CONFIG_SPL_BUILD
+
 /*
  * OMAP GPIO configuration
  */
@@ -85,6 +80,8 @@
 #define CONFIG_OMAP3_GPIO_5
 
 #define CONFIG_OMAP3_SPI
+
+#endif /* not CONFIG_SPL_BUILD */
 
 /*
  * NS16550 Configuration
@@ -210,7 +207,7 @@
 #define CONFIG_JFFS2_PART_SIZE		0xf980000	/* sz of jffs2 part */
 
 /* Environment information */
-#define CONFIG_BOOTDELAY	3
+#define CONFIG_BOOTDELAY	10
 
 #define CONFIG_BOOTFILE		"uImage"
 
@@ -262,6 +259,9 @@
 	"updateuimage=run clearmem; run loaduimage; run saveuimage\0" \
     "updatefs=run clearmem; run loadfs; run savefs\0" \
 	"getserverip=dns ${nfshost} serverip\0" \
+	"fpgabinname=rhino_top_gpio.bin\0" \
+	"loadfpgabin=tftp ${loadaddr} ${fpgabinname}\0" \
+	"fpgaloadtfttp=run clearmem; run loadfpgabin; fpga load 0 ${loadaddr} 0x406534;\0" \
 
 #define CONFIG_BOOTCOMMAND \
     "if ${nandbootdefault}; then " \
